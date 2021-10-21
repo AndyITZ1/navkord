@@ -8,4 +8,5 @@ conn_str = os.getenv('MONGODB_URL')
 
 client = MongoClient(conn_str, serverSelectionTimeoutMS=5000)
 
-mydb = MyClient["users"]
+mydb = MyClient["navkord"]
+user_col = mydb["users"]
