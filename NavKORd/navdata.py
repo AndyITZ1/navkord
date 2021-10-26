@@ -16,7 +16,25 @@ mydb = client["navkord"]
 
 #Creates collection
 user_col = mydb["users"]
+etok_col = mydb["etok"]
 
 #RPG Collection
 #This is in the future, rpg collection will have a list of users, but this is an optional sign up meaning some users my not have data for this collection
 #rpg_col = mydb["rpg"]
+
+def add_to(results):
+    etok_col.insert_one(results)
+
+
+def find_db(word):
+    for x in etok_col.find({ "word": word }, {"_id": False}):
+        return x
+
+def check_db(word):
+    print("Checking DB for " + word)
+    for x in etok_col.find({"word": word}, {"_id": False}):
+        for key, value in x.items():
+            if value == word:
+                return True
+            else:
+                return False
