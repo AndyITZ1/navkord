@@ -5,6 +5,10 @@ import navdata
 import random
 import websearch
 from dotenv import load_dotenv
+from websearch import etok
+from navdata import find_db
+from navdata import check_db
+
 
 load_dotenv('know.env')
 TOKEN = os.getenv('TOKEN')
@@ -52,7 +56,12 @@ class MyClient(discord.Client):
                 # it might be just one line/list of words that aren't numbered so make sure you have a different parsing function
                 search_word = content.split(' ')[1] #Ex: !etok blue --> retrieves "blue"
                 #results = functionHere(search_word) Uncomment this line when you replace functionHere()
-
+                if check_db(search_word):
+                    print("From DB")
+                    print(find_db(search_word))
+                else:
+                    print("From Web")
+                    print(etok(search_word))
                 # for testing your functions I recommend do it the way you did it by printing in websearch.py, as I still have to format
                 # it to see it on discord and obviously you can't test here because you don't have the "know.env"
                 
