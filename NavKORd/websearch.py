@@ -8,7 +8,7 @@ from navdata import add_to
 options = FirefoxOptions()
 options.add_argument("--headless")
 
-service = Service("D:\\Projects and other Prodution\\Python Projects\\navkord\\geckodriver.exe")
+service = Service("C:\\Users\\andyt\\Desktop\\NavKORd\\navkord\\NavKORd\\geckodriver.exe")
 driver = webdriver.Firefox(service=service, options=options)
 
 def etok(word):
@@ -39,9 +39,27 @@ def etok(word):
                 count += 1
 
         print(final)
+        dic_to_str = ""
+        for key, value in dic.items():
+            dic_to_str += key + ": " + value + "\n"
+        
+        ret_dic = { "Word": "", "Adjective": [], "Noun": [], "Verb": [], "Interjection": [], "Other": [] }
+        for line in dic_to_str.splitlines():
+            if line.find("word") >= 0:
+                ret_dic["Word"] = line.split(": ")[1]
+            elif line.find("Adjective") >= 0:
+                ret_dic["Adjective"].append(line.split("Adjective ")[1]) 
+            elif line.find("Noun") >= 0:
+                ret_dic["Noun"].append(line.split("Noun ")[1]) 
+            elif line.find("Verb") >= 0:
+                ret_dic["Verb"].append(line.split("Verb ")[1]) 
+            elif line.find("Interjection") >= 0:
+                ret_dic["Interjection"].append(line.split("Interjection ")[1])
+            else:
+                ret_dic["Other"].append(line.split(": ")[1])
 
         add_to(dic)
-        return dic
+        return ret_dic
 
         driver.quit()
 

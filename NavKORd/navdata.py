@@ -18,6 +18,7 @@ mydb = client["navkord"]
 user_col = mydb["users"]
 etok_col = mydb["etok"]
 
+print("RANED")
 #RPG Collection
 #This is in the future, rpg collection will have a list of users, but this is an optional sign up meaning some users my not have data for this collection
 #rpg_col = mydb["rpg"]
@@ -28,7 +29,25 @@ def add_to(results):
 
 def find_db(word):
     for x in etok_col.find({ "word": word }, {"_id": False}):
-        return x
+        dic_to_str = ""
+        for key, value in x.items():
+            dic_to_str += key + ": " + value + "\n"
+
+    ret_dic = { "Word": "", "Adjective": [], "Noun": [], "Verb": [], "Interjection": [], "Other": [] }
+    for line in dic_to_str.splitlines():
+        if line.find("word") >= 0:
+            ret_dic["Word"] = line.split(": ")[1]
+        elif line.find("Adjective") >= 0:
+            ret_dic["Adjective"].append(line.split("Adjective ")[1]) 
+        elif line.find("Noun") >= 0:
+            ret_dic["Noun"].append(line.split("Noun ")[1]) 
+        elif line.find("Verb") >= 0:
+            ret_dic["Verb"].append(line.split("Verb ")[1]) 
+        elif line.find("Interjection") >= 0:
+            ret_dic["Interjection"].append(line.split("Interjection ")[1]) 
+        else:
+            ret_dic["Other"].append(line.split(": ")[1])
+    return ret_dic
 
 def check_db(word):
     print("Checking DB for " + word)
