@@ -6,6 +6,7 @@ import random
 import websearch
 from dotenv import load_dotenv
 from websearch import etok
+from websearch import ktoe
 from navdata import find_db
 from navdata import check_db
 
@@ -20,10 +21,27 @@ def list_to_str(list):
     a = ""
     if list:
         for word in list:
-            a += word + "\n"
+            a += word
     else:
         a = "None"
     return a
+
+def create_embed_etok(result_dict):
+    embed=discord.Embed(title=result_dict["Word"], color=0x00e1ff)
+    embed.set_author(name="Naver Eng-Kor Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
+    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
+    if list_to_str(result_dict["Adjective"]) != "None":
+        embed.add_field(name="Adjective", value=list_to_str(result_dict["Adjective"]), inline=False)
+    if list_to_str(result_dict["Noun"]) != "None":
+        embed.add_field(name="Noun", value=list_to_str(result_dict["Noun"]), inline=False)
+    if list_to_str(result_dict["Verb"]) != "None":                    
+        embed.add_field(name="Verb", value=list_to_str(result_dict["Verb"]), inline=False)
+    if list_to_str(result_dict["Interjection"]) != "None":
+        embed.add_field(name="Interjection", value=list_to_str(result_dict["Interjection"]), inline=False)
+    if list_to_str(result_dict["Other"]) != "None":
+        embed.add_field(name="Other", value=list_to_str(result_dict["Other"]), inline=False)
+    embed.set_footer(text="Copyright Naver 2021")
+    return embed
 
 # class holding the bot and its functions
 class MyClient(discord.Client):
@@ -58,53 +76,17 @@ class MyClient(discord.Client):
                 return
             elif content.startswith(prefix + "ktoe"):
                 search_word = content.split(' ')[1] #Ex: !ktoe 하다  --> retrieves the korean word
-                # for the function make sure it returns the parse format and stores it into the 'results' variable
-                # results = functionHere(search_word) Uncomment this line when you replace functionHere()
+                ktoe(search_word)
             elif content.startswith(prefix + "etok"):
-                #This command is different from the last because with English words you get numbered lines, with Korean words
-                # it might be just one line/list of words that aren't numbered so make sure you have a different parsing function
                 search_word = content.split(' ')[1].lower() #Ex: !etok blue --> retrieves "blue"
-                #results = functionHere(search_word) Uncomment this line when you replace functionHere()
                 if check_db(search_word):
                     print("From DB")
-                    #print(find_db(search_word))
-                    results = find_db(search_word)
-                    embed=discord.Embed(title=results["Word"], color=0x00e1ff)
-                    embed.set_author(name="Naver Eng-Kor Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-                    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-                    if list_to_str(results["Adjective"]) != "None":
-                        embed.add_field(name="Adjective", value=list_to_str(results["Adjective"]), inline=False)
-                    if list_to_str(results["Noun"]) != "None":
-                        embed.add_field(name="Noun", value=list_to_str(results["Noun"]), inline=False)
-                    if list_to_str(results["Verb"]) != "None":                    
-                        embed.add_field(name="Verb", value=list_to_str(results["Verb"]), inline=False)
-                    if list_to_str(results["Interjection"]) != "None":
-                        embed.add_field(name="Interjection", value=list_to_str(results["Interjection"]), inline=False)
-                    if list_to_str(results["Other"]) != "None":
-                        embed.add_field(name="Other", value=list_to_str(results["Other"]), inline=False)
-                    embed.set_footer(text="Copyright Naver 2021")
+                    embed = create_embed_etok(find_db(search_word))
                     await message.channel.send(embed=embed)
                 else:
                     print("From Web")
-                    #print(etok(search_word))
-                    results = etok(search_word)
-                    embed=discord.Embed(title=results["Word"], color=0x00e1ff)
-                    embed.set_author(name="Naver Eng-Kor Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-                    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-                    if list_to_str(results["Adjective"]) != "None":
-                        embed.add_field(name="Adjective", value=list_to_str(results["Adjective"]), inline=False)
-                    if list_to_str(results["Noun"]) != "None":
-                        embed.add_field(name="Noun", value=list_to_str(results["Noun"]), inline=False)
-                    if list_to_str(results["Verb"]) != "None":                    
-                        embed.add_field(name="Verb", value=list_to_str(results["Verb"]), inline=False)
-                    if list_to_str(results["Interjection"]) != "None":
-                        embed.add_field(name="Interjection", value=list_to_str(results["Interjection"]), inline=False)
-                    if list_to_str(results["Other"]) != "None":
-                        embed.add_field(name="Other", value=list_to_str(results["Other"]), inline=False)
-                    embed.set_footer(text="Copyright Naver 2021")
+                    embed = create_embed_etok(etok(search_word))
                     await message.channel.send(embed=embed)
-                # for testing your functions I recommend do it the way you did it by printing in websearch.py, as I still have to format
-                # it to see it on discord and obviously you can't test here because you don't have the "know.env"
                 
 
 

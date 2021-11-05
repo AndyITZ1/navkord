@@ -18,7 +18,6 @@ mydb = client["navkord"]
 user_col = mydb["users"]
 etok_col = mydb["etok"]
 
-print("RANED")
 #RPG Collection
 #This is in the future, rpg collection will have a list of users, but this is an optional sign up meaning some users my not have data for this collection
 #rpg_col = mydb["rpg"]
@@ -38,15 +37,15 @@ def find_db(word):
         if line.find("word") >= 0:
             ret_dic["Word"] = line.split(": ")[1]
         elif line.find("Adjective") >= 0:
-            ret_dic["Adjective"].append(line.split("Adjective ")[1]) 
+            ret_dic["Adjective"].append(line.split("Adjective ")[1] + "\n") 
         elif line.find("Noun") >= 0:
-            ret_dic["Noun"].append(line.split("Noun ")[1]) 
+            ret_dic["Noun"].append(line.split("Noun ")[1] + "\n") 
         elif line.find("Verb") >= 0:
-            ret_dic["Verb"].append(line.split("Verb ")[1]) 
+            ret_dic["Verb"].append(line.split("Verb ")[1] + "\n") 
         elif line.find("Interjection") >= 0:
-            ret_dic["Interjection"].append(line.split("Interjection ")[1]) 
+            ret_dic["Interjection"].append(line.split("Interjection ")[1] + "\n")
         else:
-            ret_dic["Other"].append(line.split(": ")[1])
+            ret_dic["Other"].append(line.split(": ")[1] + "\n")
     return ret_dic
 
 def check_db(word):

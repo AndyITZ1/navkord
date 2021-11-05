@@ -11,6 +11,23 @@ options.add_argument("--headless")
 service = Service("C:\\Users\\andyt\\Desktop\\NavKORd\\navkord\\NavKORd\\geckodriver.exe")
 driver = webdriver.Firefox(service=service, options=options)
 
+def ktoe(word):
+    try:
+        dic = {"word": word}
+        driver.get("https://en.dict.naver.com/#/search?query=" + word)
+        # Waits for website to load fully
+        driver.implicitly_wait(3)
+
+        idiom = driver.find_element(By.ID, "searchPage_entry")
+        first_row = idiom.find_element(By.CLASS_NAME, "row")
+        words = first_row.find_elements(By.CLASS_NAME, "mean_list")
+        results = []
+        for value in words:
+            results += (value.text.split("\n"))
+        print(results)
+    except:
+        return "Error: Invalid word or website down"
+
 def etok(word):
     try:
         dic = {"word": word}
@@ -48,20 +65,18 @@ def etok(word):
             if line.find("word") >= 0:
                 ret_dic["Word"] = line.split(": ")[1]
             elif line.find("Adjective") >= 0:
-                ret_dic["Adjective"].append(line.split("Adjective ")[1]) 
+                ret_dic["Adjective"].append(line.split("Adjective ")[1] + "\n") 
             elif line.find("Noun") >= 0:
-                ret_dic["Noun"].append(line.split("Noun ")[1]) 
+                ret_dic["Noun"].append(line.split("Noun ")[1] + "\n") 
             elif line.find("Verb") >= 0:
-                ret_dic["Verb"].append(line.split("Verb ")[1]) 
+                ret_dic["Verb"].append(line.split("Verb ")[1] + "\n") 
             elif line.find("Interjection") >= 0:
-                ret_dic["Interjection"].append(line.split("Interjection ")[1])
+                ret_dic["Interjection"].append(line.split("Interjection ")[1] + "\n")
             else:
-                ret_dic["Other"].append(line.split(": ")[1])
+                ret_dic["Other"].append(line.split(": ")[1] + "\n")
 
         add_to(dic)
         return ret_dic
-
         driver.quit()
-
     except:
         return "Error: Invalid word or website down"
