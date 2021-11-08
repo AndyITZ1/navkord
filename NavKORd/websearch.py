@@ -8,7 +8,7 @@ from navdata import add_etok, add_ktoe
 options = FirefoxOptions()
 options.add_argument("--headless")
 
-service = Service("C:\\Users\\andyt\\Desktop\\NavKORd\\navkord\\NavKORd\\geckodriver.exe")
+service = Service("./geckodriver.exe")
 driver = webdriver.Firefox(service=service, options=options)
 
 
