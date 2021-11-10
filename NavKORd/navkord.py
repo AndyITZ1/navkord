@@ -58,6 +58,28 @@ def create_embed_stats(user):
     embed.add_field(name="Gold", value=db_user["gold"], inline=True)
     return embed
 
+def list_to_str_ktoe(list):
+    a = ""
+    if list:
+        for word in list:
+            a += word + "\n"
+    else:
+        a = "None"
+    return a
+
+
+def create_embed_ktoe(result_dict):
+    embed = discord.Embed(title=result_dict["word"], color=0x00e1ff)
+    embed.set_author(name="Naver Kor-Eng Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
+    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
+    for key in result_dict:
+        if key in ["word"]:
+            pass
+        else:
+            embed.add_field(name=key, value=list_to_str_ktoe(result_dict[key]), inline=False)
+    embed.set_footer(text="Copyright Naver 2021")
+    return embed
+
 
 def add_new_user(user, exp_val=0, dict_req=0):
     dic = {
@@ -116,7 +138,8 @@ class MyClient(discord.Client):
                                             }}
                     update_user(user, update_val)
                 search_word = content.split(' ')[1]  # Ex: !ktoe 하다  --> retrieves the korean word
-                ktoe(search_word)
+                out = create_embed_ktoe(ktoe(search_word))
+                await message.channel.send(embed=out)
             elif content.startswith(prefix + "etok"):
                 db_user = find_user(actual_user)
                 if not db_user:
