@@ -23,41 +23,29 @@ def ktoe(word):
         driver.get("https://en.dict.naver.com/#/search?query=" + word)
         # Waits for website to load fully
         driver.implicitly_wait(3)
-        results = []
 
         component_keyword = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[1]/div[3]/div").find_elements(
             By.CLASS_NAME, "row")
         for l in component_keyword:
             source = l.find_element(By.CLASS_NAME, "source").text # the korean dictionary source
             key = l.find_element(By.CLASS_NAME, "link").text # the highlighted blue word
+            result = []
             if key.startswith(word) and (key == word or key.startswith(word + ' ')):
-                print(key)
-                print(source)
                 if source not in dic:
                     dic[source] = []
-                print(l.find_element(By.CLASS_NAME, "mean_list").text)
-                result += l.find_element(By.CLASS_NAME, "mean_list").text.split("\n")
-                print(result)
-                for num in results:
-                    if num[:-1].isnumeric():
-                        pass
-                    else:
-                        dic[source] += num
-                result = []
+                    result += l.find_element(By.CLASS_NAME, "mean_list").text.split("\n")
+                    for num in result:
+                        if num[:-1].isnumeric():
+                            pass
+                        else:
+                            dic[source].append(num)
+                else:
+                    pass
 
-        print(dic)
-                # break
-        # print(results)
-        # for num in results:
-        #     if num[:-1].isnumeric():
-        #         pass
-        #     else:
-        #         dic[str(count)] = num
-        #         count += 1
-        # add(dic)
         driver.quit()
         return dic
     except:
+        driver.quit()
         return "Error: Invalid word or website down"
 
 
