@@ -11,6 +11,11 @@ options.add_argument("--headless")
 service = Service("./geckodriver.exe")
 driver = webdriver.Firefox(service=service, options=options)
 
+# https://en.dict.naver.com/#/search?range=all&query=%EC%97%B4
+# https://en.dict.naver.com/#/search?range=all&query=%ED%99%95%EC%9D%B8%ED%95%98%EB%8B%A4
+# https://en.dict.naver.com/#/search?range=all&query=%EA%B2%B0%EC%A0%95%ED%95%98%EB%8B%A4
+# https://en.dict.naver.com/#/search?query=%EC%9D%BC&range=all
+
 
 def ktoe(word):
     try:
@@ -22,25 +27,39 @@ def ktoe(word):
 
         component_keyword = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[1]/div[3]/div").find_elements(
             By.CLASS_NAME, "row")
-        # for m in component_keyword:
-        #     if m.find_element(By.CLASS_NAME, "highlight").text == word:
-        #         print(m.find_element(By.CLASS_NAME, "highlight").text)
         for l in component_keyword:
-            if l.find_element(By.CLASS_NAME, "source").text == "ET-house Neungyule Korean-English Dictionary" and l.find_element(By.CLASS_NAME, "link").text.startswith(word):
+            source = l.find_element(By.CLASS_NAME, "source").text # the korean dictionary source
+            key = l.find_element(By.CLASS_NAME, "link").text # the highlighted blue word
+            if key.startswith(word) and (key == word or key.startswith(word + ' ')):
+                print(key)
+                print(source)
+                if source not in dic:
+                    dic[source] = []
                 print(l.find_element(By.CLASS_NAME, "mean_list").text)
-                results += l.find_element(By.CLASS_NAME, "mean_list").text.split("\n")
-                #break
-        print(results)
-        for num in results:
-            if num[:-1].isnumeric():
-                pass
-            else:
-                dic[str(count)] = num
-                count += 1
-        add(dic)
+                result += l.find_element(By.CLASS_NAME, "mean_list").text.split("\n")
+                print(result)
+                for num in results:
+                    if num[:-1].isnumeric():
+                        pass
+                    else:
+                        dic[source] += num
+                result = []
+
+        print(dic)
+                # break
+        # print(results)
+        # for num in results:
+        #     if num[:-1].isnumeric():
+        #         pass
+        #     else:
+        #         dic[str(count)] = num
+        #         count += 1
+        # add(dic)
+        driver.quit()
         return dic
     except:
         return "Error: Invalid word or website down"
+
 
 def etok(word):
     try:
