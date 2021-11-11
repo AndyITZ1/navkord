@@ -28,7 +28,6 @@ def ktoe(word):
             By.CLASS_NAME, "row")
         
         if not component_keyword:
-            driver.quit()
             return "Error: Please check the words again."
         for l in component_keyword:
             source = l.find_element(By.CLASS_NAME, "source").text # the korean dictionary source
@@ -37,16 +36,12 @@ def ktoe(word):
             if key.startswith(word) and (key == word or key.startswith(word + ' ')):
                 if source not in dic:
                     dic[source] = []
-                    result += l.find_element(By.CLASS_NAME, "mean_list").text.split("\n")
-                    for num in result:
-                        if num[:-1].isnumeric():
-                            pass
-                        else:
-                            dic[source].append(num)
-                else:
-                    pass
-
-        driver.quit()
+                result += l.find_element(By.CLASS_NAME, "mean_list").text.split("\n")
+                for num in result:
+                    if num[:-1].isnumeric():
+                        pass
+                    else:
+                        dic[source].append(num)
         return dic
     except:
         driver.quit()

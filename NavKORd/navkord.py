@@ -138,8 +138,12 @@ class MyClient(discord.Client):
                                             }}
                     update_user(user, update_val)
                 search_word = content.split(' ')[1]  # Ex: !ktoe 하다  --> retrieves the korean word
-                out = create_embed_ktoe(ktoe(search_word))
-                await message.channel.send(embed=out)
+                ktoe_re = ktoe(search_word)
+                if type(ktoe_re) == str:
+                    await message.channel.send(ktoe_re)
+                else:
+                    out = create_embed_ktoe(ktoe_re)
+                    await message.channel.send(embed=out)
             elif content.startswith(prefix + "etok"):
                 db_user = find_user(actual_user)
                 if not db_user:
