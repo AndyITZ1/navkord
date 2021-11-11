@@ -26,6 +26,10 @@ def ktoe(word):
 
         component_keyword = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[1]/div[3]/div").find_elements(
             By.CLASS_NAME, "row")
+        
+        if not component_keyword:
+            driver.quit()
+            return "Error: Please check the words again."
         for l in component_keyword:
             source = l.find_element(By.CLASS_NAME, "source").text # the korean dictionary source
             key = l.find_element(By.CLASS_NAME, "link").text # the highlighted blue word
