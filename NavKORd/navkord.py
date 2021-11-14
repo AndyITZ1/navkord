@@ -106,6 +106,8 @@ class MyClient(discord.Client):
         user = str(message.author)
         actual_user = message.author
 
+        mention_users = message.mentions
+
         # message sent
         content = str(message.content)
 
@@ -126,42 +128,58 @@ class MyClient(discord.Client):
                 await message.channel.send(response)
                 return
             elif content.startswith(prefix + "stats"):
-                embed = create_embed_stats(actual_user)
-                await message.channel.send(embed=embed)
+                if len(mention_users) == 1:
+                    embed = create_embed_stats(mention_users[0])
+                    await message.channel.send(embed=embed)
+                elif len(content.split(' ')) > 1:
+                    await message.channel.send("Try again. Please use either \"stats\" or \"stats @username\".")
+                else:
+                    embed = create_embed_stats(actual_user)
+                    await message.channel.send(embed=embed)
             elif content.startswith(prefix + "ktoe"):
-                db_user = find_user(actual_user)
-                if not db_user:
-                    add_new_user(actual_user, 1, 1)
-                else:
-                    update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                           "dictreq": db_user["dictreq"] + 1
-                                            }}
-                    update_user(user, update_val)
                 search_word = content.split(' ')[1]  # Ex: !ktoe 하다  --> retrieves the korean word
-                ktoe_re = ktoe(search_word)
-                if type(ktoe_re) == str:
-                    await message.channel.send(ktoe_re)
+                if search_word.isalpha():
+                    await message.channel.send("Try again! Please input a valid Korean word.")
                 else:
-                    out = create_embed_ktoe(ktoe_re)
-                    await message.channel.send(embed=out)
+                    db_user = find_user(actual_user)
+                    if not db_user:
+                        add_new_user(actual_user, 1, 1)
+                    else:
+                        update_val = {"$set": {"exp": db_user["exp"] + 1,
+                                               "dictreq": db_user["dictreq"] + 1
+                                                }}
+                        update_user(user, update_val)
+                    ktoe_re = ktoe(search_word)
+                    if type(ktoe_re) == str:
+                        await message.channel.send(ktoe_re)
+                    else:
+                        out = create_embed_ktoe(ktoe_re)
+                        await message.channel.send(embed=out)
             elif content.startswith(prefix + "etok"):
-                db_user = find_user(actual_user)
-                if not db_user:
-                    add_new_user(actual_user, 1, 1)
-                else:
-                    update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                           "dictreq": db_user["dictreq"] + 1
-                                           }}
-                    update_user(user, update_val)
                 search_word = content.split(' ')[1].lower()  # Ex: !etok blue --> retrieves "blue"
-                if check_etok(search_word):
-                    print("From DB")
-                    embed = create_embed_etok(find_etok(search_word))
-                    await message.channel.send(embed=embed)
+                if not search_word.isalpha():
+                    await message.channel.send("Try again! Please input a valid English word.")
                 else:
-                    print("From Web")
-                    embed = create_embed_etok(etok(search_word))
-                    await message.channel.send(embed=embed)
+                    db_user = find_user(actual_user)
+                    if not db_user:
+                        add_new_user(actual_user, 1, 1)
+                    else:
+                        update_val = {"$set": {"exp": db_user["exp"] + 1,
+                                               "dictreq": db_user["dictreq"] + 1
+                                               }}
+                        update_user(user, update_val)
+                    if check_etok(search_word):
+                        print("From DB")
+                        embed = create_embed_etok(find_etok(search_word))
+                        await message.channel.send(embed=embed)
+                    else:
+                        print("From Web")
+                        etok_re = etok(search_word)
+                        if type(etok_re) == str:
+                            await message.channel.send(etok_re)
+                        else:
+                            embed = create_embed_etok(etok_re)
+                            await message.channel.send(embed=embed)
 
 
 client = MyClient()

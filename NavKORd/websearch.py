@@ -28,7 +28,7 @@ def ktoe(word):
             By.CLASS_NAME, "row")
         
         if not component_keyword:
-            return "Error: Please check the words again."
+            return "No definitions were found for this word!"
         for l in component_keyword:
             source = l.find_element(By.CLASS_NAME, "source").text # the korean dictionary source
             key = l.find_element(By.CLASS_NAME, "link").text # the highlighted blue word
