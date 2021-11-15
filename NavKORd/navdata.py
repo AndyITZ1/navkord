@@ -44,6 +44,12 @@ def add_ktoe(results):
     ktoe_col.insert_one(results)
 
 
+def find_ktoe(word):
+    for x in ktoe_col.find({"word": word}, {"_id": False}):
+        return x
+    return False
+
+
 def add_etok(results):
     etok_col.insert_one(results)
 

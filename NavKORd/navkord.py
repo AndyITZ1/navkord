@@ -6,7 +6,7 @@ import random
 import websearch
 from dotenv import load_dotenv
 from websearch import etok, ktoe
-from navdata import find_etok, check_etok, add_user, find_user, update_user
+from navdata import find_etok, check_etok, add_user, find_user, update_user, find_ktoe
 
 load_dotenv('know.env')
 TOKEN = os.getenv('TOKEN')
@@ -138,7 +138,7 @@ class MyClient(discord.Client):
                     await message.channel.send(embed=embed)
             elif content.startswith(prefix + "ktoe"):
                 search_word = content.split(' ')[1]  # Ex: !ktoe 하다  --> retrieves the korean word
-                if search_word.isalpha():
+                if search_word.encode().isalpha():
                     await message.channel.send("Try again! Please input a valid Korean word.")
                 else:
                     db_user = find_user(actual_user)
@@ -149,15 +149,22 @@ class MyClient(discord.Client):
                                                "dictreq": db_user["dictreq"] + 1
                                                 }}
                         update_user(user, update_val)
-                    ktoe_re = ktoe(search_word)
-                    if type(ktoe_re) == str:
-                        await message.channel.send(ktoe_re)
+                    ktoe_find = find_ktoe(search_word)
+                    if ktoe_find:
+                        print("from DB")
+                        embed = create_embed_ktoe(ktoe_find)
+                        await message.channel.send(embed=embed)
                     else:
-                        out = create_embed_ktoe(ktoe_re)
-                        await message.channel.send(embed=out)
+                        print("from Web")
+                        ktoe_re = ktoe(search_word)
+                        if type(ktoe_re) == str:
+                            await message.channel.send(ktoe_re)
+                        else:
+                            out = create_embed_ktoe(ktoe_re)
+                            await message.channel.send(embed=out)
             elif content.startswith(prefix + "etok"):
                 search_word = content.split(' ')[1].lower()  # Ex: !etok blue --> retrieves "blue"
-                if not search_word.isalpha():
+                if not search_word.encode().isalpha():
                     await message.channel.send("Try again! Please input a valid English word.")
                 else:
                     db_user = find_user(actual_user)
