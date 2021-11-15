@@ -42,9 +42,8 @@ def ktoe(word):
                         pass
                     else:
                         dic[source].append(num)
-
-        return dic
         add_ktoe(dic)
+        return dic
     except:
         driver.quit()
         return "Error: Invalid word or website down"

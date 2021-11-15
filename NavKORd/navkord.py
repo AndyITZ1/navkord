@@ -42,6 +42,12 @@ def create_embed_etok(result_dict):
     embed.set_footer(text="Copyright Naver 2021")
     return embed
 
+def list_to_str_newline(list):
+    a = ""
+    for word in list:
+        a += word + "\n"
+    return a
+
 
 def create_embed_stats(user):
     embed = discord.Embed(title=str(user), color=0x1ad132)
@@ -56,7 +62,10 @@ def create_embed_stats(user):
     embed.add_field(name="Dictionary Requests", value=db_user["dictreq"], inline=True)
     embed.add_field(name="Daily Corrects", value=db_user["dailycor"], inline=True)
     embed.add_field(name="Gold", value=db_user["gold"], inline=True)
+    # if db_user["rsw"]:
+    #     embed.add_field(name="Recently Search Words", value=db_user["rsw"], inline=False)
     return embed
+
 
 def list_to_str_ktoe(list):
     a = ""
@@ -73,9 +82,7 @@ def create_embed_ktoe(result_dict):
     embed.set_author(name="Naver Kor-Eng Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
     embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
     for key in result_dict:
-        if key in ["word"]:
-            pass
-        else:
+        if not (key in ["word", "_id"]):
             embed.add_field(name=key, value=list_to_str_ktoe(result_dict[key]), inline=False)
     embed.set_footer(text="Copyright Naver 2021")
     return embed
@@ -89,6 +96,7 @@ def add_new_user(user, exp_val=0, dict_req=0):
         "dictreq": dict_req,
         "dailycor": 0,
         "gold": 0
+        #"rsw": []
     }
     add_user(dic)
 
