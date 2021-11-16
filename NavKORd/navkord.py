@@ -4,8 +4,9 @@ import asyncio
 import navdata
 import random
 import websearch
+import atexit
 from dotenv import load_dotenv
-from websearch import etok, ktoe
+from websearch import etok, ktoe, killbrowser
 from navdata import find_etok, check_etok, add_user, find_user, update_user, find_ktoe
 
 load_dotenv('know.env')
@@ -82,7 +83,7 @@ def create_embed_ktoe(result_dict):
     embed.set_author(name="Naver Kor-Eng Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
     embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
     for key in result_dict:
-        if not (key in ["word", "_id"]):
+        if not (key in ["word", "_id", "count", "date"]):
             embed.add_field(name=key, value=list_to_str_ktoe(result_dict[key]), inline=False)
     embed.set_footer(text="Copyright Naver 2021")
     return embed
@@ -199,3 +200,6 @@ class MyClient(discord.Client):
 
 client = MyClient()
 client.run(TOKEN)
+
+atexit.register(killbrowser)
+

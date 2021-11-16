@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 import os
+import datetime
 from dotenv import load_dotenv
 
 # Loads in the env file containing all secured tokens.
@@ -46,8 +47,31 @@ def add_ktoe(results):
 
 def find_ktoe(word):
     for x in ktoe_col.find({"word": word}, {"_id": False}):
+        ktoe_col.update_one({"word": word}, {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
         return x
     return False
+
+def ktoe_recent(amount):
+    y = []
+    total = 1
+    for x in ktoe_col.find().sort("date", -1):
+        y.append(x["word"])
+        if total == amount:
+            return y
+        else:
+            total += 1
+    return y
+
+def ktoe_popular(amount):
+    y = []
+    total = 1
+    for x in ktoe_col.find().sort("count", -1):
+        y.append(x["word"])
+        if total == amount:
+            return y
+        else:
+            total += 1
+    return y
 
 
 def add_etok(results):
@@ -55,31 +79,36 @@ def add_etok(results):
 
 
 def find_etok(word):
-    for x in etok_col.find({"word": word}, {"_id": False}):
-        dic_to_str = ""
-        for key, value in x.items():
-            dic_to_str += key + ": " + value + "\n"
+    for x in etok_col.find({"Word": word}, {"_id": False}):
+        etok_col.update_one({"Word": word}, {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
+        return x
 
-    ret_dic = {"Word": "", "Adjective": [], "Noun": [], "Verb": [], "Interjection": [], "Other": []}
-    for line in dic_to_str.splitlines():
-        if line.find("word") >= 0:
-            ret_dic["Word"] = line.split(": ")[1]
-        elif line.find("Adjective") >= 0:
-            ret_dic["Adjective"].append(line.split("Adjective ")[1] + "\n")
-        elif line.find("Noun") >= 0:
-            ret_dic["Noun"].append(line.split("Noun ")[1] + "\n")
-        elif line.find("Verb") >= 0:
-            ret_dic["Verb"].append(line.split("Verb ")[1] + "\n")
-        elif line.find("Interjection") >= 0:
-            ret_dic["Interjection"].append(line.split("Interjection ")[1] + "\n")
+def etok_recent(amount):
+    y = []
+    total = 1
+    for x in etok_col.find().sort("date", -1):
+        y.append(x["Word"])
+        if total == amount:
+            return y
         else:
-            ret_dic["Other"].append(line.split(": ")[1] + "\n")
-    return ret_dic
+            total += 1
+    return y
+
+def etok_popular(amount):
+    y = []
+    total = 1
+    for x in etok_col.find().sort("count", -1):
+        y.append(x["Word"])
+        if total == amount:
+            return y
+        else:
+            total += 1
+    return y
 
 
 def check_etok(word):
     print("Checking DB for " + word)
-    for x in etok_col.find({"word": word}, {"_id": False}):
+    for x in etok_col.find({"Word": word}, {"_id": False}):
         for key, value in x.items():
             if value == word:
                 return True
