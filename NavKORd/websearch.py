@@ -29,8 +29,7 @@ def ktoe(word):
         # Waits for website to load fully
         driver.implicitly_wait(3)
 
-        component_keyword = driver.find_element(By.XPATH, "/html/body/div[2]/div[2]/div[1]/div[3]/div").find_elements(
-            By.CLASS_NAME, "row")
+        component_keyword = driver.find_element(By.ID, "searchPage_entry").find_elements(By.CLASS_NAME, "row")
 
         if not component_keyword:
             return "No definitions were found for this word!"
