@@ -63,8 +63,11 @@ def create_embed_stats(user):
     embed.add_field(name="Dictionary Requests", value=db_user["dictreq"], inline=True)
     embed.add_field(name="Daily Corrects", value=db_user["dailycor"], inline=True)
     embed.add_field(name="Gold", value=db_user["gold"], inline=True)
-    # if db_user["rsw"]:
-    #     embed.add_field(name="Recently Search Words", value=db_user["rsw"], inline=False)
+    if db_user["rsw"]:
+        rsw_out = ""
+        for search in db_user["rsw"]:
+            rsw_out += "* " + search + "\n"
+        embed.add_field(name="Recently Search Words", value=rsw_out, inline=False)
     return embed
 
 
@@ -96,8 +99,8 @@ def add_new_user(user, exp_val=0, dict_req=0):
         "exp": exp_val,
         "dictreq": dict_req,
         "dailycor": 0,
-        "gold": 0
-        #"rsw": []
+        "gold": 0,
+        "rsw": []
     }
     add_user(dic)
 
@@ -154,11 +157,19 @@ class MyClient(discord.Client):
                     if not db_user:
                         add_new_user(actual_user, 1, 1)
                     else:
+                        if len(db_user["rsw"]) >= 5:
+                            if not (search_word in db_user["rsw"]):  # avoid dup
+                                db_user["rsw"].pop(0)
+                                db_user["rsw"].append(search_word)
+                        else:
+                            if not (search_word in db_user["rsw"]):  # avoid dup
+                                db_user["rsw"].append(search_word)
                         update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                               "dictreq": db_user["dictreq"] + 1
-                                                }}
+                                               "dictreq": db_user["dictreq"] + 1,
+                                               "rsw": db_user["rsw"]
+                                               }}
                         update_user(user, update_val)
-                    ktoe_find = find_ktoe(search_word)
+                        ktoe_find = find_ktoe(search_word)
                     if ktoe_find:
                         print("from DB")
                         embed = create_embed_ktoe(ktoe_find)
@@ -180,8 +191,16 @@ class MyClient(discord.Client):
                     if not db_user:
                         add_new_user(actual_user, 1, 1)
                     else:
+                        if len(db_user["rsw"]) >= 5:
+                            if not (search_word in db_user["rsw"]):  # avoid dup
+                                db_user["rsw"].pop(0)
+                                db_user["rsw"].append(search_word)
+                        else:
+                            if not (search_word in db_user["rsw"]):  # avoid dup
+                                db_user["rsw"].append(search_word)
                         update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                               "dictreq": db_user["dictreq"] + 1
+                                               "dictreq": db_user["dictreq"] + 1,
+                                               "rsw": db_user["rsw"]
                                                }}
                         update_user(user, update_val)
                     if check_etok(search_word):
@@ -202,4 +221,3 @@ client = MyClient()
 client.run(TOKEN)
 
 atexit.register(killbrowser)
-
