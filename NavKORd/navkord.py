@@ -239,8 +239,12 @@ class MyClient(discord.Client):
             await asyncio.sleep(5)
 
     async def wait_until_hour(self, hour_val):
-        # WRITE TIME FUNCTION HERE
-        await asyncio.sleep((scheduled - current_time).total_seconds())
+        dt = datetime.now()
+        td = datetime.strptime(str(datetime.now().date()) + " " + hour_val + ":00:00", "%Y-%m-%d %H:%M:%S")
+        if td < dt:
+            print("Schedule time is passed, adding a day")
+            td = td + timedelta(days=1)
+        await asyncio.sleep((td - dt).seconds)
 
     # DONT TOUCH THIS
     async def run_at(self, hour_val):
