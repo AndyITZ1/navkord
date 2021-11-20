@@ -95,6 +95,17 @@ def create_embed_ktoe(result_dict):
     embed.set_footer(text="Copyright Naver 2021")
     return embed
 
+def help_embed():
+    embed = discord.Embed(title="NavKORd Help")
+    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
+    embed.add_field(name="!ktoe", value="Converts Korean words to English..", inline=False)
+    embed.add_field(name="!etok", value="Converts English words to Korean.", inline=False)
+    embed.add_field(name="!random", value="roles a random number.", inline=False)
+    embed.add_field(name="!stats", value="displays your stats from NavKORd. use @user to display a users stats. ",
+                    inline=False)
+    embed.set_footer(text="NavKORd Version 0.0.10a")
+    return embed
+
 
 def add_new_user(user, exp_val=0, dict_req=0):
     dic = {
@@ -156,28 +167,14 @@ class MyClient(discord.Client):
                 else:
                     embed = create_embed_stats(actual_user)
                     await message.channel.send(embed=embed)
+            elif content.startswith(prefix + "help"):
+                await message.channel.send(embed=help_embed())
             elif content.startswith(prefix + "ktoe"):
                 search_word = content.split(' ')[1]  # Ex: !ktoe 하다  --> retrieves the korean word
                 if search_word.encode().isalpha():
                     await message.channel.send("Try again! Please input a valid Korean word.")
                 else:
-                    db_user = find_user(actual_user)
-                    if not db_user:
-                        add_new_user(actual_user, 1, 1)
-                    else:
-                        if len(db_user["rsw"]) >= 5:
-                            if not (search_word in db_user["rsw"]):  # avoid dup
-                                db_user["rsw"].pop(0)
-                                db_user["rsw"].append(search_word)
-                        else:
-                            if not (search_word in db_user["rsw"]):  # avoid dup
-                                db_user["rsw"].append(search_word)
-                        update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                               "dictreq": db_user["dictreq"] + 1,
-                                               "rsw": db_user["rsw"]
-                                               }}
-                        update_user(user, update_val)
-                        ktoe_find = find_ktoe(search_word)
+                    ktoe_find = find_ktoe(search_word)
                     if ktoe_find:
                         print("from DB")
                         embed = create_embed_ktoe(ktoe_find)
@@ -188,6 +185,22 @@ class MyClient(discord.Client):
                         if type(ktoe_re) == str:
                             await message.channel.send(ktoe_re)
                         else:
+                            db_user = find_user(actual_user)
+                            if not db_user:
+                                add_new_user(actual_user, 1, 1)
+                            else:
+                                if len(db_user["rsw"]) >= 5:
+                                    if not (search_word in db_user["rsw"]):  # avoid dup
+                                        db_user["rsw"].pop(0)
+                                        db_user["rsw"].append(search_word)
+                                else:
+                                    if not (search_word in db_user["rsw"]):  # avoid dup
+                                        db_user["rsw"].append(search_word)
+                                update_val = {"$set": {"exp": db_user["exp"] + 1,
+                                                       "dictreq": db_user["dictreq"] + 1,
+                                                       "rsw": db_user["rsw"]
+                                                       }}
+                                update_user(user, update_val)
                             out = create_embed_ktoe(ktoe_re)
                             await message.channel.send(embed=out)
             elif content.startswith(prefix + "etok"):
