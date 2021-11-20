@@ -6,6 +6,7 @@ import random
 import websearch
 import atexit
 from discord.ext import tasks
+from datetime import datetime, time
 from dotenv import load_dotenv
 from websearch import etok, ktoe, killbrowser
 from navdata import find_etok, check_etok, add_user, find_user, update_user, find_ktoe
@@ -229,13 +230,26 @@ class MyClient(discord.Client):
                             embed = create_embed_etok(etok_re)
                             await message.channel.send(embed=embed)
 
-    # async def print_hello(self):
-    #     await self.wait_until_ready()
-    #     print("hello")
-    #     channel = self.get_channel(729825675120214099)
-    #     while not self.is_closed():
-    #         await channel.send("hello")
-    #         await asyncio.sleep(5)
+    async def print_hello(self):
+        await self.wait_until_ready()
+        print("hello")
+        channel = self.get_channel(729825675120214099)
+        while not self.is_closed():
+            await channel.send("hello")
+            await asyncio.sleep(5)
+
+    async def wait_until_hour(self, hour_val):
+        # WRITE TIME FUNCTION HERE
+        await asyncio.sleep((scheduled - current_time).total_seconds())
+
+    # DONT TOUCH THIS
+    async def run_at(self, hour_val):
+        await wait_until_hour(hour_val, coro)
+        return await coro
+
+    # FIGURE THIS OUT LATER WHEN YOU ARE DONE
+    async def daily_question(self):
+        pass
 
 
 client = MyClient()
