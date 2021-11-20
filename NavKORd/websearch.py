@@ -18,9 +18,6 @@ driver = webdriver.Firefox(service=service, options=options)
 # https://en.dict.naver.com/#/search?range=all&query=%EA%B2%B0%EC%A0%95%ED%95%98%EB%8B%A4
 # https://en.dict.naver.com/#/search?query=%EC%9D%BC&range=all
 
-def killbrowser():
-    driver.quit()
-
 
 def ktoe(word):
     # try:

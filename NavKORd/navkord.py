@@ -4,12 +4,11 @@ import asyncio
 import navdata
 import random
 import websearch
-import atexit
 from discord.ext import tasks
 from datetime import datetime, time
 from dotenv import load_dotenv
-from websearch import etok, ktoe, killbrowser
-from navdata import find_etok, check_etok, add_user, find_user, update_user, find_ktoe
+from websearch import etok, ktoe
+from navdata import find_etok, check_etok, add_user, find_user, update_user, find_ktoe, ktoe_random, etok_random
 
 load_dotenv('know.env')
 TOKEN = os.getenv('TOKEN')
@@ -253,10 +252,11 @@ class MyClient(discord.Client):
 
     # FIGURE THIS OUT LATER WHEN YOU ARE DONE
     async def daily_question(self):
-        pass
+        e_or_k = random.randint(0, 1)
+        if e_or_k:
+            ktoe_
 
 
 client = MyClient()
 client.run(TOKEN)
 
-atexit.register(killbrowser)

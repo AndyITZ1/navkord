@@ -47,9 +47,11 @@ def add_ktoe(results):
 
 def find_ktoe(word):
     for x in ktoe_col.find({"word": word}, {"_id": False}):
-        ktoe_col.update_one({"word": word}, {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
+        ktoe_col.update_one({"word": word},
+                            {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
         return x
     return False
+
 
 def ktoe_recent(amount):
     y = []
@@ -61,6 +63,7 @@ def ktoe_recent(amount):
         else:
             total += 1
     return y
+
 
 def ktoe_popular(amount):
     y = []
@@ -74,14 +77,21 @@ def ktoe_popular(amount):
     return y
 
 
+def ktoe_random(size):
+    for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
+        return x
+
+
 def add_etok(results):
     etok_col.insert_one(results)
 
 
 def find_etok(word):
     for x in etok_col.find({"Word": word}, {"_id": False}):
-        etok_col.update_one({"Word": word}, {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
+        etok_col.update_one({"Word": word},
+                            {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
         return x
+
 
 def etok_recent(amount):
     y = []
@@ -93,6 +103,7 @@ def etok_recent(amount):
         else:
             total += 1
     return y
+
 
 def etok_popular(amount):
     y = []
@@ -114,3 +125,9 @@ def check_etok(word):
                 return True
             else:
                 return False
+
+def etok_random(size):
+    for x in etok_col.aggregate([{"$sample": {"size": size}}]):
+        return x
+
+
