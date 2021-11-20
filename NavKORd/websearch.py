@@ -3,7 +3,10 @@ from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from navdata import add_etok, add_ktoe
+from navdata import Etok, Ktoe
+
+ktoe_class = Ktoe()
+etok_class = Etok()
 
 # Makes the driver run in headless mode
 options = FirefoxOptions()
@@ -19,7 +22,7 @@ driver = webdriver.Firefox(service=service, options=options)
 # https://en.dict.naver.com/#/search?query=%EC%9D%BC&range=all
 
 
-def ktoe(word):
+def ktoe_search(word):
     # try:
         dic = {"word": word, "count": 1, "date": datetime.datetime.now().isoformat()}
         driver.get("https://en.dict.naver.com/#/search?query=" + word)
@@ -55,13 +58,13 @@ def ktoe(word):
                         dic[source].append(num)
 
 
-        add_ktoe(dic)
+        ktoe_class.add(dic)
         return dic
     # except Exception:
     #     return "Error: Invalid word or website down"
 
 
-def etok(word):
+def etok_search(word):
     try:
         dic = {"word": word}
         driver.get("https://en.dict.naver.com/#/search?query=" + word)
@@ -109,7 +112,7 @@ def etok(word):
             else:
                 ret_dic["Other"].append(line.split(": ")[1] + "\n")
 
-        add_etok(ret_dic)
+        etok_class.add(ret_dic)
         return ret_dic
     except Exception:
         return "Error: Invalid word or website down"
