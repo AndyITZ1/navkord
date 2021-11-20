@@ -5,6 +5,7 @@ import navdata
 import random
 import websearch
 import atexit
+from discord.ext import tasks
 from dotenv import load_dotenv
 from websearch import etok, ktoe, killbrowser
 from navdata import find_etok, check_etok, add_user, find_user, update_user, find_ktoe
@@ -43,6 +44,7 @@ def create_embed_etok(result_dict):
     embed.set_footer(text="Copyright Naver 2021")
     return embed
 
+
 def list_to_str_newline(list):
     a = ""
     for word in list:
@@ -59,7 +61,7 @@ def create_embed_stats(user):
         add_new_user(user)
         db_user = find_user(user)
     embed.add_field(name="Level", value=db_user["level"], inline=True)
-    embed.add_field(name="Exp", value=f'{db_user["exp"]}/{db_user["level"]*100}', inline=True)
+    embed.add_field(name="Exp", value=f'{db_user["exp"]}/{db_user["level"] * 100}', inline=True)
     embed.add_field(name="Dictionary Requests", value=db_user["dictreq"], inline=True)
     embed.add_field(name="Daily Corrects", value=db_user["dailycor"], inline=True)
     embed.add_field(name="Gold", value=db_user["gold"], inline=True)
@@ -86,8 +88,10 @@ def create_embed_ktoe(result_dict):
     embed.set_author(name="Naver Kor-Eng Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
     embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
     for key in result_dict:
-        if not (key in ["word", "_id", "count", "date"]):
+        if not (key in ["word", "_id", "count", "date", "conj"]):
             embed.add_field(name=key, value=list_to_str_ktoe(result_dict[key]), inline=False)
+    if "conj" in result_dict.keys():
+        embed.add_field(name="Conjugated", value=result_dict["conj"], inline=False)
     embed.set_footer(text="Copyright Naver 2021")
     return embed
 
@@ -104,9 +108,13 @@ def add_new_user(user, exp_val=0, dict_req=0):
     }
     add_user(dic)
 
-
 # class holding the bot and its functions
 class MyClient(discord.Client):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # self.bg_hello = self.loop.create_task(self.print_hello())
 
     # at runtime will show the bot is online
     async def on_ready(self):
@@ -216,6 +224,13 @@ class MyClient(discord.Client):
                             embed = create_embed_etok(etok_re)
                             await message.channel.send(embed=embed)
 
+    # async def print_hello(self):
+    #     await self.wait_until_ready()
+    #     print("hello")
+    #     channel = self.get_channel(729825675120214099)
+    #     while not self.is_closed():
+    #         await channel.send("hello")
+    #         await asyncio.sleep(5)
 
 client = MyClient()
 client.run(TOKEN)
