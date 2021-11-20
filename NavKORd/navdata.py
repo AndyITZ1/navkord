@@ -25,109 +25,112 @@ ktoe_col = mydb["ktoe"]
 # This is in the future, rpg collection will have a list of users, but this is an optional sign up meaning some users my not have data for this collection
 # rpg_col = mydb["rpg"]
 
-def add_user(user_data):
-    user_col.insert_one(user_data)
+class UserDB:
 
+    def __init__(self):
+        pass
 
-def find_user(user):
-    user_query = user_col.find({"user": str(user)}, {"_id": False})
-    for x in user_query:
-        return x
-    else:
-        return {}
+    def add_user(self, user_data):
+        user_col.insert_one(user_data)
 
-
-def update_user(user, updated_data):
-    user_col.update_one({"user": str(user)}, updated_data)
-
-
-def add_ktoe(results):
-    ktoe_col.insert_one(results)
-
-
-def find_ktoe(word):
-    for x in ktoe_col.find({"word": word}, {"_id": False}):
-        ktoe_col.update_one({"word": word},
-                            {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
-        return x
-    return False
-
-
-def ktoe_recent(amount):
-    y = []
-    total = 1
-    for x in ktoe_col.find().sort("date", -1):
-        y.append(x["word"])
-        if total == amount:
-            return y
+    def find_user(self, user):
+        user_query = user_col.find({"user": str(user)}, {"_id": False})
+        for x in user_query:
+            return x
         else:
-            total += 1
-    return y
+            return {}
+
+    def update_user(self, user, updated_data):
+        user_col.update_one({"user": str(user)}, updated_data)
 
 
-def ktoe_popular(amount):
-    y = []
-    total = 1
-    for x in ktoe_col.find().sort("count", -1):
-        y.append(x["word"])
-        if total == amount:
-            return y
-        else:
-            total += 1
-    return y
+class Ktoe:
 
+    def __init__(self):
+        pass
 
-def ktoe_random(size):
-    for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
-        return x
+    def add(self, results):
+        ktoe_col.insert_one(results)
 
+    def find(self, word):
+        for x in ktoe_col.find({"word": word}, {"_id": False}):
+            ktoe_col.update_one({"word": word},
+                                {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
+            return x
+        return False
 
-def add_etok(results):
-    etok_col.insert_one(results)
-
-
-def find_etok(word):
-    for x in etok_col.find({"Word": word}, {"_id": False}):
-        etok_col.update_one({"Word": word},
-                            {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
-        return x
-
-
-def etok_recent(amount):
-    y = []
-    total = 1
-    for x in etok_col.find().sort("date", -1):
-        y.append(x["Word"])
-        if total == amount:
-            return y
-        else:
-            total += 1
-    return y
-
-
-def etok_popular(amount):
-    y = []
-    total = 1
-    for x in etok_col.find().sort("count", -1):
-        y.append(x["Word"])
-        if total == amount:
-            return y
-        else:
-            total += 1
-    return y
-
-
-def check_etok(word):
-    print("Checking DB for " + word)
-    for x in etok_col.find({"Word": word}, {"_id": False}):
-        for key, value in x.items():
-            if value == word:
-                return True
+    def recent(self, amount):
+        y = []
+        total = 1
+        for x in ktoe_col.find().sort("date", -1):
+            y.append(x["word"])
+            if total == amount:
+                return y
             else:
-                return False
+                total += 1
+        return y
 
-def etok_random(size):
-    for x in etok_col.aggregate([{"$sample": {"size": size}}]):
-        return x
+    def popular(self, amount):
+        y = []
+        total = 1
+        for x in ktoe_col.find().sort("count", -1):
+            y.append(x["word"])
+            if total == amount:
+                return y
+            else:
+                total += 1
+        return y
+
+    def random(self, size):
+        for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
+            return x
 
 
+class Etok:
+
+    def __init__(self):
+        pass
+
+    def add(self, results):
+        etok_col.insert_one(results)
+
+    def find(self, word):
+        for x in etok_col.find({"Word": word}, {"_id": False}):
+            etok_col.update_one({"Word": word},
+                                {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
+            return x
+
+    def recent(self, amount):
+        y = []
+        total = 1
+        for x in etok_col.find().sort("date", -1):
+            y.append(x["Word"])
+            if total == amount:
+                return y
+            else:
+                total += 1
+        return y
+
+    def popular(self, amount):
+        y = []
+        total = 1
+        for x in etok_col.find().sort("count", -1):
+            y.append(x["Word"])
+            if total == amount:
+                return y
+            else:
+                total += 1
+        return y
+
+    def check(self, word):
+        print("Checking DB for " + word)
+        for x in etok_col.find({"Word": word}, {"_id": False}):
+            for key, value in x.items():
+                if value == word:
+                    return True
+                else:
+                    return False
+
+    def random(self, size):
+        for x in etok_col.aggregate([{"$sample": {"size": size}}]):
+            return x
