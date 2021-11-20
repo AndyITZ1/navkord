@@ -1,251 +1,116 @@
-import discord
+from pymongo import MongoClient
 import os
-import asyncio
-import navdata
-import random
-import websearch
-import atexit
-from discord.ext import tasks
+import datetime
 from dotenv import load_dotenv
-from websearch import etok, ktoe, killbrowser
-from navdata import find_etok, check_etok, add_user, find_user, update_user, find_ktoe
 
+# Loads in the env file containing all secured tokens.
 load_dotenv('know.env')
-TOKEN = os.getenv('TOKEN')
 
-# changeable prefix for bot
-prefix = "!"
+# MongoDB URI used to connect with Atlas cluster from the application
+conn_str = os.getenv('MONGODB_URL')
+
+# Creates the connection between the application and the Atlas database
+client = MongoClient(conn_str, serverSelectionTimeoutMS=5000)
+
+# Creates database
+mydb = client["navkord"]
+
+# Creates collection
+user_col = mydb["users"]
+etok_col = mydb["etok"]
+ktoe_col = mydb["ktoe"]
 
 
-def list_to_str(list):
-    a = ""
-    if list:
-        for word in list:
-            a += word
+# RPG Collection
+# This is in the future, rpg collection will have a list of users, but this is an optional sign up meaning some users my not have data for this collection
+# rpg_col = mydb["rpg"]
+
+def add_user(user_data):
+    user_col.insert_one(user_data)
+
+
+def find_user(user):
+    user_query = user_col.find({"user": str(user)}, {"_id": False})
+    for x in user_query:
+        return x
     else:
-        a = "None"
-    return a
+        return {}
 
 
-def create_embed_etok(result_dict):
-    embed = discord.Embed(title=result_dict["Word"], color=0x00e1ff)
-    embed.set_author(name="Naver Eng-Kor Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-    if list_to_str(result_dict["Adjective"]) != "None":
-        embed.add_field(name="Adjective", value=list_to_str(result_dict["Adjective"]), inline=False)
-    if list_to_str(result_dict["Noun"]) != "None":
-        embed.add_field(name="Noun", value=list_to_str(result_dict["Noun"]), inline=False)
-    if list_to_str(result_dict["Verb"]) != "None":
-        embed.add_field(name="Verb", value=list_to_str(result_dict["Verb"]), inline=False)
-    if list_to_str(result_dict["Interjection"]) != "None":
-        embed.add_field(name="Interjection", value=list_to_str(result_dict["Interjection"]), inline=False)
-    if list_to_str(result_dict["Other"]) != "None":
-        embed.add_field(name="Other", value=list_to_str(result_dict["Other"]), inline=False)
-    embed.set_footer(text="Copyright Naver 2021")
-    return embed
+def update_user(user, updated_data):
+    user_col.update_one({"user": str(user)}, updated_data)
 
 
-def list_to_str_newline(list):
-    a = ""
-    for word in list:
-        a += word + "\n"
-    return a
+def add_ktoe(results):
+    ktoe_col.insert_one(results)
 
 
-def create_embed_stats(user):
-    embed = discord.Embed(title=str(user), color=0x1ad132)
-    embed.set_author(name="NavKORd")
-    embed.set_thumbnail(url=str(user.avatar_url))
-    db_user = find_user(user)
-    if not db_user:
-        add_new_user(user)
-        db_user = find_user(user)
-    embed.add_field(name="Level", value=db_user["level"], inline=True)
-    embed.add_field(name="Exp", value=f'{db_user["exp"]}/{db_user["level"] * 100}', inline=True)
-    embed.add_field(name="Dictionary Requests", value=db_user["dictreq"], inline=True)
-    embed.add_field(name="Daily Corrects", value=db_user["dailycor"], inline=True)
-    embed.add_field(name="Gold", value=db_user["gold"], inline=True)
-    if db_user["rsw"]:
-        rsw_out = ""
-        for search in db_user["rsw"]:
-            rsw_out += "* " + search + "\n"
-        embed.add_field(name="Recently Search Words", value=rsw_out, inline=False)
-    return embed
+def find_ktoe(word):
+    for x in ktoe_col.find({"word": word}, {"_id": False}):
+        ktoe_col.update_one({"word": word}, {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
+        return x
+    return False
+
+def ktoe_recent(amount):
+    y = []
+    total = 1
+    for x in ktoe_col.find().sort("date", -1):
+        y.append(x["word"])
+        if total == amount:
+            return y
+        else:
+            total += 1
+    return y
+
+def ktoe_popular(amount):
+    y = []
+    total = 1
+    for x in ktoe_col.find().sort("count", -1):
+        y.append(x["word"])
+        if total == amount:
+            return y
+        else:
+            total += 1
+    return y
 
 
-def list_to_str_ktoe(list):
-    a = ""
-    if list:
-        for word in list:
-            a += word + "\n"
-    else:
-        a = "None"
-    return a
+def add_etok(results):
+    etok_col.insert_one(results)
 
 
-def create_embed_ktoe(result_dict):
-    embed = discord.Embed(title=result_dict["word"], color=0x00e1ff)
-    embed.set_author(name="Naver Kor-Eng Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-    for key in result_dict:
-        if not (key in ["word", "_id", "count", "date", "conj"]):
-            embed.add_field(name=key, value=list_to_str_ktoe(result_dict[key]), inline=False)
-    if "conj" in result_dict.keys():
-        embed.add_field(name="Conjugated", value=result_dict["conj"], inline=False)
-    embed.set_footer(text="Copyright Naver 2021")
-    return embed
+def find_etok(word):
+    for x in etok_col.find({"Word": word}, {"_id": False}):
+        etok_col.update_one({"Word": word}, {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
+        return x
 
-def help_embed():
-    embed = discord.Embed(title="NavKORd Help")
-    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-    embed.add_field(name="!ktoe", value="Converts Korean words to English..", inline=False)
-    embed.add_field(name="!etok", value="Converts English words to Korean.", inline=False)
-    embed.add_field(name="!random", value="roles a random number.", inline=False)
-    embed.add_field(name="!stats", value="displays your stats from NavKORd. use @user to display a users stats. ",
-                    inline=False)
-    embed.set_footer(text="NavKORd Version 0.0.10a")
-    return embed
+def etok_recent(amount):
+    y = []
+    total = 1
+    for x in etok_col.find().sort("date", -1):
+        y.append(x["Word"])
+        if total == amount:
+            return y
+        else:
+            total += 1
+    return y
+
+def etok_popular(amount):
+    y = []
+    total = 1
+    for x in etok_col.find().sort("count", -1):
+        y.append(x["Word"])
+        if total == amount:
+            return y
+        else:
+            total += 1
+    return y
 
 
-def add_new_user(user, exp_val=0, dict_req=0):
-    dic = {
-        "user": str(user),
-        "level": 1,
-        "exp": exp_val,
-        "dictreq": dict_req,
-        "dailycor": 0,
-        "gold": 0,
-        "rsw": []
-    }
-    add_user(dic)
-
-# class holding the bot and its functions
-class MyClient(discord.Client):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # self.bg_hello = self.loop.create_task(self.print_hello())
-
-    # at runtime will show the bot is online
-    async def on_ready(self):
-        print('Logged on as {0}!'.format(self.user))
-
-    # at runtime if a message is sent in the Discord chat, that message is passed in.
-    async def on_message(self, message):
-        # user who sent the message
-        user = str(message.author)
-        actual_user = message.author
-
-        mention_users = message.mentions
-
-        # message sent
-        content = str(message.content)
-
-        # channel the message was sent in
-        channel = str(message.channel.name)
-
-        # Avoids bot reacting/responding to itself
-        if user == self.user:
-            return
-
-        # returns active message sent in chat to the command-line terminal (not in the Discord chat)
-        print('Message from {0.author}: {0.content}'.format(message))
-
-        # Do all Bot functions here, so that the bot only reacts to messages sent in this <channel>: commands
-        if channel == 'commands':
-            if content.startswith(prefix + "random"):
-                response = f'This is your random number: {random.randint(0, 9)}'
-                await message.channel.send(response)
-                return
-            elif content.startswith(prefix + "stats"):
-                if len(mention_users) == 1:
-                    embed = create_embed_stats(mention_users[0])
-                    await message.channel.send(embed=embed)
-                elif len(content.split(' ')) > 1:
-                    await message.channel.send("Try again. Please use either \"stats\" or \"stats @username\".")
-                else:
-                    embed = create_embed_stats(actual_user)
-                    await message.channel.send(embed=embed)
-            elif content.startswith(prefix + "help"):
-                await message.channel.send(embed=help_embed())
-            elif content.startswith(prefix + "ktoe"):
-                search_word = content.split(' ')[1]  # Ex: !ktoe 하다  --> retrieves the korean word
-                if search_word.encode().isalpha():
-                    await message.channel.send("Try again! Please input a valid Korean word.")
-                else:
-                    ktoe_find = find_ktoe(search_word)
-                    if ktoe_find:
-                        print("from DB")
-                        embed = create_embed_ktoe(ktoe_find)
-                        await message.channel.send(embed=embed)
-                    else:
-                        print("from Web")
-                        ktoe_re = ktoe(search_word)
-                        if type(ktoe_re) == str:
-                            await message.channel.send(ktoe_re)
-                        else:
-                            db_user = find_user(actual_user)
-                            if not db_user:
-                                add_new_user(actual_user, 1, 1)
-                            else:
-                                if len(db_user["rsw"]) >= 5:
-                                    if not (search_word in db_user["rsw"]):  # avoid dup
-                                        db_user["rsw"].pop(0)
-                                        db_user["rsw"].append(search_word)
-                                else:
-                                    if not (search_word in db_user["rsw"]):  # avoid dup
-                                        db_user["rsw"].append(search_word)
-                                update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                                       "dictreq": db_user["dictreq"] + 1,
-                                                       "rsw": db_user["rsw"]
-                                                       }}
-                                update_user(user, update_val)
-                            out = create_embed_ktoe(ktoe_re)
-                            await message.channel.send(embed=out)
-            elif content.startswith(prefix + "etok"):
-                search_word = content.split(' ')[1].lower()  # Ex: !etok blue --> retrieves "blue"
-                if not search_word.encode().isalpha():
-                    await message.channel.send("Try again! Please input a valid English word.")
-                else:
-                    db_user = find_user(actual_user)
-                    if not db_user:
-                        add_new_user(actual_user, 1, 1)
-                    else:
-                        if len(db_user["rsw"]) >= 5:
-                            if not (search_word in db_user["rsw"]):  # avoid dup
-                                db_user["rsw"].pop(0)
-                                db_user["rsw"].append(search_word)
-                        else:
-                            if not (search_word in db_user["rsw"]):  # avoid dup
-                                db_user["rsw"].append(search_word)
-                        update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                               "dictreq": db_user["dictreq"] + 1,
-                                               "rsw": db_user["rsw"]
-                                               }}
-                        update_user(user, update_val)
-                    if check_etok(search_word):
-                        print("From DB")
-                        embed = create_embed_etok(find_etok(search_word))
-                        await message.channel.send(embed=embed)
-                    else:
-                        print("From Web")
-                        etok_re = etok(search_word)
-                        if type(etok_re) == str:
-                            await message.channel.send(etok_re)
-                        else:
-                            embed = create_embed_etok(etok_re)
-                            await message.channel.send(embed=embed)
-
-    # async def print_hello(self):
-    #     await self.wait_until_ready()
-    #     print("hello")
-    #     channel = self.get_channel(729825675120214099)
-    #     while not self.is_closed():
-    #         await channel.send("hello")
-    #         await asyncio.sleep(5)
-
-client = MyClient()
-client.run(TOKEN)
-
-atexit.register(killbrowser)
+def check_etok(word):
+    print("Checking DB for " + word)
+    for x in etok_col.find({"Word": word}, {"_id": False}):
+        for key, value in x.items():
+            if value == word:
+                return True
+            else:
+                return False
