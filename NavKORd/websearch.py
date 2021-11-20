@@ -32,21 +32,14 @@ def ktoe(word):
         component_keyword = driver.find_element(By.ID, "searchPage_entry").find_elements(By.CLASS_NAME, "row")
         suggestion = driver.find_element(By.ID, "container").find_elements(By.CLASS_NAME, "suggestion")
         suggestion_word = ""
-        print(suggestion)
         if suggestion:
-            print("No")
             act_suggest = suggestion[0].text.split("\n")
-            suggestion_word = act_suggest[1].split("'")
-            word = suggestion_word[1]
-            dic["conj"] = "This is word is a conjugated version of " + word
-        print(suggestion)
-
-
-        # if act_suggest:
-        #    print(suggestion_word[1])
-        # This is word is a conjugated version of 하다.
-        # if act_suggest[1].find("Would you like to search") >= 0:
-        #     print("Would you like to search")
+            if act_suggest[1].find("Would you like to search") >= 0:
+                return "This word does not exist."
+            else:
+                suggestion_word = act_suggest[1].split("'")
+                word = suggestion_word[1]
+                dic["conj"] = "This is word is a conjugated version of " + word
 
         if not component_keyword:
             return "No definitions were found for this word!"
