@@ -95,6 +95,7 @@ def create_embed_ktoe(result_dict):
     embed.set_footer(text="Copyright Naver 2021")
     return embed
 
+
 def help_embed():
     embed = discord.Embed(title="NavKORd Help")
     embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
@@ -105,6 +106,25 @@ def help_embed():
                     inline=False)
     embed.set_footer(text="NavKORd Version 0.0.10a")
     return embed
+
+
+def add_stats(actual_user, search_word):
+    db_user = find_user(actual_user)
+    if not db_user:
+        add_new_user(actual_user, 1, 1)
+    else:
+        if len(db_user["rsw"]) >= 5:
+            if not (search_word in db_user["rsw"]):  # avoid dup
+                db_user["rsw"].pop(0)
+                db_user["rsw"].append(search_word)
+        else:
+            if not (search_word in db_user["rsw"]):  # avoid dup
+                db_user["rsw"].append(search_word)
+        update_val = {"$set": {"exp": db_user["exp"] + 1,
+                               "dictreq": db_user["dictreq"] + 1,
+                               "rsw": db_user["rsw"]
+                               }}
+        update_user(str(actual_user), update_val)
 
 
 def add_new_user(user, exp_val=0, dict_req=0):
@@ -118,6 +138,7 @@ def add_new_user(user, exp_val=0, dict_req=0):
         "rsw": []
     }
     add_user(dic)
+
 
 # class holding the bot and its functions
 class MyClient(discord.Client):
@@ -177,6 +198,7 @@ class MyClient(discord.Client):
                     ktoe_find = find_ktoe(search_word)
                     if ktoe_find:
                         print("from DB")
+                        add_stats(actual_user, search_word)
                         embed = create_embed_ktoe(ktoe_find)
                         await message.channel.send(embed=embed)
                     else:
@@ -185,22 +207,7 @@ class MyClient(discord.Client):
                         if type(ktoe_re) == str:
                             await message.channel.send(ktoe_re)
                         else:
-                            db_user = find_user(actual_user)
-                            if not db_user:
-                                add_new_user(actual_user, 1, 1)
-                            else:
-                                if len(db_user["rsw"]) >= 5:
-                                    if not (search_word in db_user["rsw"]):  # avoid dup
-                                        db_user["rsw"].pop(0)
-                                        db_user["rsw"].append(search_word)
-                                else:
-                                    if not (search_word in db_user["rsw"]):  # avoid dup
-                                        db_user["rsw"].append(search_word)
-                                update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                                       "dictreq": db_user["dictreq"] + 1,
-                                                       "rsw": db_user["rsw"]
-                                                       }}
-                                update_user(user, update_val)
+                            add_stats(actual_user, search_word)
                             out = create_embed_ktoe(ktoe_re)
                             await message.channel.send(embed=out)
             elif content.startswith(prefix + "etok"):
@@ -208,22 +215,7 @@ class MyClient(discord.Client):
                 if not search_word.encode().isalpha():
                     await message.channel.send("Try again! Please input a valid English word.")
                 else:
-                    db_user = find_user(actual_user)
-                    if not db_user:
-                        add_new_user(actual_user, 1, 1)
-                    else:
-                        if len(db_user["rsw"]) >= 5:
-                            if not (search_word in db_user["rsw"]):  # avoid dup
-                                db_user["rsw"].pop(0)
-                                db_user["rsw"].append(search_word)
-                        else:
-                            if not (search_word in db_user["rsw"]):  # avoid dup
-                                db_user["rsw"].append(search_word)
-                        update_val = {"$set": {"exp": db_user["exp"] + 1,
-                                               "dictreq": db_user["dictreq"] + 1,
-                                               "rsw": db_user["rsw"]
-                                               }}
-                        update_user(user, update_val)
+                    add_stats(actual_user, search_word)
                     if check_etok(search_word):
                         print("From DB")
                         embed = create_embed_etok(find_etok(search_word))
@@ -244,6 +236,7 @@ class MyClient(discord.Client):
     #     while not self.is_closed():
     #         await channel.send("hello")
     #         await asyncio.sleep(5)
+
 
 client = MyClient()
 client.run(TOKEN)
