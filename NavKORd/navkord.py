@@ -4,14 +4,17 @@ import asyncio
 import navdata
 import random
 import websearch
-from discord.ext import tasks
-from datetime import datetime, time
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from websearch import etok, ktoe
-from navdata import find_etok, check_etok, add_user, find_user, update_user, find_ktoe, ktoe_random, etok_random
+from websearch import etok_search, ktoe_search
+from navdata import UserDB, Ktoe, Etok
 
 load_dotenv('know.env')
 TOKEN = os.getenv('TOKEN')
+
+userdb = UserDB()
+ktoe = Ktoe()
+etok = Etok()
 
 # changeable prefix for bot
 prefix = "!"
@@ -56,10 +59,10 @@ def create_embed_stats(user):
     embed = discord.Embed(title=str(user), color=0x1ad132)
     embed.set_author(name="NavKORd")
     embed.set_thumbnail(url=str(user.avatar_url))
-    db_user = find_user(user)
+    db_user = userdb.find_user(user)
     if not db_user:
         add_new_user(user)
-        db_user = find_user(user)
+        db_user = userdb.find_user(user)
     embed.add_field(name="Level", value=db_user["level"], inline=True)
     embed.add_field(name="Exp", value=f'{db_user["exp"]}/{db_user["level"] * 100}', inline=True)
     embed.add_field(name="Dictionary Requests", value=db_user["dictreq"], inline=True)
@@ -109,7 +112,7 @@ def help_embed():
 
 
 def add_stats(actual_user, search_word):
-    db_user = find_user(actual_user)
+    db_user = userdb.find_user(actual_user)
     if not db_user:
         add_new_user(actual_user, 1, 1)
     else:
@@ -124,7 +127,7 @@ def add_stats(actual_user, search_word):
                                "dictreq": db_user["dictreq"] + 1,
                                "rsw": db_user["rsw"]
                                }}
-        update_user(str(actual_user), update_val)
+        userdb.update_user(str(actual_user), update_val)
 
 
 def add_new_user(user, exp_val=0, dict_req=0):
@@ -137,7 +140,7 @@ def add_new_user(user, exp_val=0, dict_req=0):
         "gold": 0,
         "rsw": []
     }
-    add_user(dic)
+    userdb.add_user(dic)
 
 
 # class holding the bot and its functions
@@ -195,7 +198,7 @@ class MyClient(discord.Client):
                 if search_word.encode().isalpha():
                     await message.channel.send("Try again! Please input a valid Korean word.")
                 else:
-                    ktoe_find = find_ktoe(search_word)
+                    ktoe_find = ktoe.find(search_word)
                     if ktoe_find:
                         print("from DB")
                         add_stats(actual_user, search_word)
@@ -203,7 +206,7 @@ class MyClient(discord.Client):
                         await message.channel.send(embed=embed)
                     else:
                         print("from Web")
-                        ktoe_re = ktoe(search_word)
+                        ktoe_re = ktoe_search(search_word)
                         if type(ktoe_re) == str:
                             await message.channel.send(ktoe_re)
                         else:
@@ -216,13 +219,13 @@ class MyClient(discord.Client):
                     await message.channel.send("Try again! Please input a valid English word.")
                 else:
                     add_stats(actual_user, search_word)
-                    if check_etok(search_word):
+                    if etok.check(search_word):
                         print("From DB")
-                        embed = create_embed_etok(find_etok(search_word))
+                        embed = create_embed_etok(etok.find(search_word))
                         await message.channel.send(embed=embed)
                     else:
                         print("From Web")
-                        etok_re = etok(search_word)
+                        etok_re = etok_search(search_word)
                         if type(etok_re) == str:
                             await message.channel.send(etok_re)
                         else:
