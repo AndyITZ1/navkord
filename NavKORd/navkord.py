@@ -1,9 +1,7 @@
 import discord
 import os
 import asyncio
-import navdata
 import random
-import websearch
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from websearch import etok_search, ktoe_search
@@ -99,6 +97,31 @@ def create_embed_ktoe(result_dict):
     return embed
 
 
+def iskor(word):
+    final = ""
+    space = True
+    for letter in word:
+        if letter.encode().isalpha():
+            final += letter
+        elif letter == " ":
+            final += " "
+        elif letter == ",":
+            final += ","
+        else:
+            pass
+    while space is True:
+        if final[:1] == " ":
+            final = final[1:]
+        else:
+            space = False
+    if len(final) < 3:
+        return False
+    if final:
+        return final
+    else:
+        return False
+
+
 def help_embed():
     embed = discord.Embed(title="NavKORd Help")
     embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
@@ -148,7 +171,7 @@ class MyClient(discord.Client):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.dqt = self.loop.create_task(self.run_at("22:45:20", self.daily_question()))
+        self.dqt = self.loop.create_task(self.run_at("22:32:15", self.daily_question()))
 
         # self.bg_hello = self.loop.create_task(self.print_hello())
 
@@ -263,9 +286,52 @@ class MyClient(discord.Client):
         print("run bi")
         channel = self.get_channel(729825675120214099)
         # e_k_bool = random.choice([True, False])
-        e_k_bool = False
+        e_k_bool = True
         if e_k_bool:
             print("k")
+            db_data = ktoe.random(4)
+            count = 1
+            for list in db_data:
+                for key in list:
+                    if key in ["conj"]:
+                        print("conj found")
+                        error = 0
+                        dup_loop = True
+                        inde = db_data.index(list)
+                        old = db_data[inde]
+                        db_data[inde] = ktoe.random(1)
+                        while dup_loop:
+                            if db_data[inde] == old:
+                                error += 1
+                                db_data[inde] = ktoe.random(1)
+                                pass
+                            elif error <= 5:
+                                dup_loop = False
+                            else:
+                                dup_loop = False
+                        print(db_data)
+                        print(db_data[inde])
+            answer_num = random.randint(0, 3)
+            embed = discord.Embed(title="Daily Question:",
+                                  description="What is the English word for " + db_data[answer_num]["word"] + "?",
+                                  color=0x00e1ff)
+            for list in db_data:
+                loop_break = False
+                for key in list:
+                    if loop_break:
+                        break
+                    if key in ["conj"]:
+                        break
+                    if key not in ["word", "_id", "count", "date"]:
+                        for word in list[key]:
+                            if iskor(word):
+                                print(word)
+                                embed.add_field(name=str(count), value=iskor(word), inline=False)
+                                count += 1
+                                loop_break = True
+                                break
+            await channel.send(embed=embed)
+
             # db_data = ktoe.random(4)
             # embed = discord.Embed(title=result_dict["word"], color=0x00e1ff)
             # for x in db_data:
