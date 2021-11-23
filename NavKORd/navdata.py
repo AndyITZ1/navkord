@@ -83,6 +83,12 @@ class Ktoe:
 
     def random(self, size):
         out = []
+        if size == 1:
+            for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
+                if x in out:
+                    pass
+                else:
+                    return x
         for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
             if x in out:
                 pass
