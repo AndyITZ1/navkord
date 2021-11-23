@@ -148,6 +148,7 @@ class MyClient(discord.Client):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.dqt = self.loop.create_task(self.run_at("22:45:20", self.daily_question()))
 
         # self.bg_hello = self.loop.create_task(self.print_hello())
 
@@ -232,6 +233,7 @@ class MyClient(discord.Client):
                             embed = create_embed_etok(etok_re)
                             await message.channel.send(embed=embed)
 
+
     async def print_hello(self):
         await self.wait_until_ready()
         print("hello")
@@ -242,22 +244,65 @@ class MyClient(discord.Client):
 
     async def wait_until_hour(self, hour_val):
         dt = datetime.now()
-        td = datetime.strptime(str(datetime.now().date()) + " " + hour_val + ":00:00", "%Y-%m-%d %H:%M:%S")
+        td = datetime.strptime(str(datetime.now().date()) + " " + hour_val, "%Y-%m-%d %H:%M:%S")
         if td < dt:
             print("Schedule time is passed, adding a day")
             td = td + timedelta(days=1)
+        print((td - dt).seconds)
         await asyncio.sleep((td - dt).seconds)
 
     # DONT TOUCH THIS
-    async def run_at(self, hour_val):
-        await wait_until_hour(hour_val, coro)
+    async def run_at(self, hour_val, coro):
+        await self.wait_until_ready()
+        await self.wait_until_hour(hour_val)
         return await coro
 
     # FIGURE THIS OUT LATER WHEN YOU ARE DONE
     async def daily_question(self):
-        e_or_k = random.randint(0, 1)
-        if e_or_k:
-            ktoe_
+        # 1 min timer
+        print("run bi")
+        channel = self.get_channel(729825675120214099)
+        # e_k_bool = random.choice([True, False])
+        e_k_bool = False
+        if e_k_bool:
+            print("k")
+            # db_data = ktoe.random(4)
+            # embed = discord.Embed(title=result_dict["word"], color=0x00e1ff)
+            # for x in db_data:
+            #     if x ["word", "_id", "count", "date", "conj"]
+            #     embed.add_field(name="", value=list_to_str_ktoe(result_dict[key]), inline=False)
+            # print("**Daily Question:**\nWhat is the English translation of " + db_data["word"] + "?")
+            # await channel.send("**Daily Question:**\nWhat is the English translation of " + db_data["word"] + "?")
+        else:
+            print("e")
+            db_data = etok.random(10)
+            answer_num = random.randint(0, 3)
+            # print(db_data)
+            embed = discord.Embed(title="Daily Question:", description="What is the Korean word for " + db_data[answer_num]["Word"] + "?", color=0x00e1ff)
+            # embed.set_author(name="Andy")
+            count = 1
+            for x in db_data:
+                print(x)
+                for key in x:
+                    if key not in ["Word", "_id", "count", "date", "conj"]:
+                        if x[key]:
+                            # print(x[key][0])
+                            val = x[key][0]
+                            if "Number" in val:
+                                val = val.split("Number, ")[1]
+                            elif "→" in val:
+                                val = val.split(" (→")[0]
+                            else:
+                                val = val.split(",")[0]
+                            print(val)
+                            embed.add_field(name=str(count), value=val, inline=False)
+                            count += 1
+                            break
+
+            print("**Daily Question:**\nWhat is the Korean word for " + db_data[answer_num]["Word"] + "?")
+            #await channel.send("**Daily Question:**\nWhat is the Korean word for " + db_data[0]["Word"] + "?")
+            await channel.send(embed=embed)
+            print("Supposedly sent embed")
 
 
 client = MyClient()

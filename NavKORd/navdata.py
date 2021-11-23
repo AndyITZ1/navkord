@@ -82,8 +82,13 @@ class Ktoe:
         return y
 
     def random(self, size):
+        out = []
         for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
-            return x
+            if x in out:
+                pass
+            else:
+                out.append(x)
+        return out
 
 
 class Etok:
@@ -132,5 +137,10 @@ class Etok:
                     return False
 
     def random(self, size):
+        out = []
         for x in etok_col.aggregate([{"$sample": {"size": size}}]):
-            return x
+            if x in out:
+                pass
+            else:
+                out.append(x)
+        return out
