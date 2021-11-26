@@ -85,10 +85,7 @@ class Ktoe:
         out = []
         if size == 1:
             for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
-                if x in out:
-                    pass
-                else:
-                    return x
+                return x
         for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
             if x in out:
                 pass

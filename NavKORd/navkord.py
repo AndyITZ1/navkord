@@ -171,13 +171,16 @@ class MyClient(discord.Client):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.dqt = self.loop.create_task(self.run_at("22:32:15", self.daily_question()))
+        self.guild_daily_q_ans = {}
+        self.dqt = self.loop.create_task(self.run_at("11:55:10", self.daily_question()))
 
         # self.bg_hello = self.loop.create_task(self.print_hello())
 
     # at runtime will show the bot is online
     async def on_ready(self):
         print('Logged on as {0}!'.format(self.user))
+        for server in self.guilds:
+            self.guild_daily_q_ans[server.name] = 0
 
     # at runtime if a message is sent in the Discord chat, that message is passed in.
     async def on_message(self, message):
@@ -206,6 +209,8 @@ class MyClient(discord.Client):
                 response = f'This is your random number: {random.randint(0, 9)}'
                 await message.channel.send(response)
                 return
+            elif content.startswith(prefix + "ans"):
+                pass
             elif content.startswith(prefix + "stats"):
                 if len(mention_users) == 1:
                     embed = create_embed_stats(mention_users[0])
@@ -284,91 +289,96 @@ class MyClient(discord.Client):
     async def daily_question(self):
         # 1 min timer
         print("run bi")
-        channel = self.get_channel(729825675120214099)
-        # e_k_bool = random.choice([True, False])
-        e_k_bool = True
-        if e_k_bool:
-            print("k")
-            db_data = ktoe.random(4)
-            count = 1
-            for list in db_data:
-                for key in list:
-                    if key in ["conj"]:
-                        print("conj found")
-                        error = 0
-                        dup_loop = True
-                        inde = db_data.index(list)
-                        old = db_data[inde]
-                        db_data[inde] = ktoe.random(1)
-                        while dup_loop:
-                            if db_data[inde] == old:
-                                error += 1
-                                db_data[inde] = ktoe.random(1)
-                                pass
-                            elif error <= 5:
-                                dup_loop = False
-                            else:
-                                dup_loop = False
-                        print(db_data)
-                        print(db_data[inde])
-            answer_num = random.randint(0, 3)
-            embed = discord.Embed(title="Daily Question:",
-                                  description="What is the English word for " + db_data[answer_num]["word"] + "?",
-                                  color=0x00e1ff)
-            for list in db_data:
-                loop_break = False
-                for key in list:
-                    if loop_break:
-                        break
-                    if key in ["conj"]:
-                        break
-                    if key not in ["word", "_id", "count", "date"]:
-                        for word in list[key]:
-                            if iskor(word):
-                                print(word)
-                                embed.add_field(name=str(count), value=iskor(word), inline=False)
-                                count += 1
-                                loop_break = True
-                                break
-            await channel.send(embed=embed)
-
-            # db_data = ktoe.random(4)
-            # embed = discord.Embed(title=result_dict["word"], color=0x00e1ff)
-            # for x in db_data:
-            #     if x ["word", "_id", "count", "date", "conj"]
-            #     embed.add_field(name="", value=list_to_str_ktoe(result_dict[key]), inline=False)
-            # print("**Daily Question:**\nWhat is the English translation of " + db_data["word"] + "?")
-            # await channel.send("**Daily Question:**\nWhat is the English translation of " + db_data["word"] + "?")
-        else:
-            print("e")
-            db_data = etok.random(10)
-            answer_num = random.randint(0, 3)
-            # print(db_data)
-            embed = discord.Embed(title="Daily Question:", description="What is the Korean word for " + db_data[answer_num]["Word"] + "?", color=0x00e1ff)
-            # embed.set_author(name="Andy")
-            count = 1
-            for x in db_data:
-                print(x)
-                for key in x:
-                    if key not in ["Word", "_id", "count", "date", "conj"]:
-                        if x[key]:
-                            # print(x[key][0])
-                            val = x[key][0]
-                            if "Number" in val:
-                                val = val.split("Number, ")[1]
-                            elif "→" in val:
-                                val = val.split(" (→")[0]
-                            else:
-                                val = val.split(",")[0]
-                            print(val)
-                            embed.add_field(name=str(count), value=val, inline=False)
-                            count += 1
+        for server in self.guilds:
+            channel = discord.utils.get(server.channels, name="commands")
+            #channel = self.get_channel(729825675120214099)
+            # e_k_bool = random.choice([True, False])
+            e_k_bool = True
+            if e_k_bool:
+                print("k")
+                db_data = ktoe.random(4)
+                count = 1
+                for list in db_data:
+                    for key in list:
+                        if key in ["conj"]:
+                            #print("conj found")
+                            error = 0
+                            dup_loop = True
+                            inde = db_data.index(list)
+                            old = db_data[inde]
+                            db_data[inde] = ktoe.random(1)
+                            while dup_loop:
+                                if db_data[inde] == old:
+                                    error += 1
+                                    db_data[inde] = ktoe.random(1)
+                                    pass
+                                elif error <= 5:
+                                    dup_loop = False
+                                else:
+                                    dup_loop = False
+                            #print(db_data)
+                            #print(db_data[inde])
+                answer_num = random.randint(0, 3)
+                self.guild_daily_q_ans[server.name] = answer_num + 1
+                embed = discord.Embed(title="Daily Question:",
+                                      description="What is the English word for " + db_data[answer_num]["word"] + "?",
+                                      color=0x00e1ff)
+                for list in db_data:
+                    loop_break = False
+                    for key in list:
+                        if loop_break:
                             break
+                        if key in ["conj"]:
+                            break
+                        if key not in ["word", "_id", "count", "date"]:
+                            for word in list[key]:
+                                if iskor(word):
+                                    #print(word)
+                                    embed.add_field(name=str(count), value=iskor(word), inline=False)
+                                    count += 1
+                                    loop_break = True
+                                    break
+                await channel.send(embed=embed)
 
-            print("**Daily Question:**\nWhat is the Korean word for " + db_data[answer_num]["Word"] + "?")
-            #await channel.send("**Daily Question:**\nWhat is the Korean word for " + db_data[0]["Word"] + "?")
-            await channel.send(embed=embed)
-            print("Supposedly sent embed")
+                # db_data = ktoe.random(4)
+                # embed = discord.Embed(title=result_dict["word"], color=0x00e1ff)
+                # for x in db_data:
+                #     if x ["word", "_id", "count", "date", "conj"]
+                #     embed.add_field(name="", value=list_to_str_ktoe(result_dict[key]), inline=False)
+                # print("**Daily Question:**\nWhat is the English translation of " + db_data["word"] + "?")
+                # await channel.send("**Daily Question:**\nWhat is the English translation of " + db_data["word"] + "?")
+            else:
+                print("e")
+                db_data = etok.random(10)
+                answer_num = random.randint(0, 3)
+                self.guild_daily_q_ans[server.name] = answer_num + 1
+                # print(db_data)
+                embed = discord.Embed(title="Daily Question:", description="What is the Korean word for " + db_data[answer_num]["Word"] + "?", color=0x00e1ff)
+                # embed.set_author(name="Andy")
+                count = 1
+                for x in db_data:
+                    #print(x)
+                    for key in x:
+                        if key not in ["Word", "_id", "count", "date", "conj"]:
+                            if x[key]:
+                                # print(x[key][0])
+                                val = x[key][0]
+                                if "Number" in val:
+                                    val = val.split("Number, ")[1]
+                                elif "→" in val:
+                                    val = val.split(" (→")[0]
+                                else:
+                                    val = val.split(",")[0]
+                                print(val)
+                                embed.add_field(name=str(count), value=val, inline=False)
+                                count += 1
+                                break
+
+                #print("**Daily Question:**\nWhat is the Korean word for " + db_data[answer_num]["Word"] + "?")
+                #await channel.send("**Daily Question:**\nWhat is the Korean word for " + db_data[0]["Word"] + "?")
+                await channel.send(embed=embed)
+                print("Supposedly sent embed")
+        print(self.guild_daily_q_ans)
 
 
 client = MyClient()
