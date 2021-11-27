@@ -133,3 +133,5 @@ NavKORd/NavKORd.pyproj
 NavKORd/NavKORd.sln
 NavKORd/.idea/workspace.xml
 NavKORd/testing.py
+NavKORd/navstart.py
+NavKORd/navembed.py

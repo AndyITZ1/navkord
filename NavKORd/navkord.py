@@ -107,8 +107,6 @@ def iskor(word):
             final += " "
         elif letter == ",":
             final += ","
-        else:
-            pass
     while space is True:
         if final[:1] == " ":
             final = final[1:]
@@ -134,7 +132,7 @@ def help_embed():
     return embed
 
 
-def add_stats(actual_user, search_word):
+def add_stats_word(actual_user, search_word):
     db_user = userdb.find_user(actual_user)
     if not db_user:
         add_new_user(actual_user, 1, 1)
@@ -171,8 +169,10 @@ class MyClient(discord.Client):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.guild_dq_bool = {}
         self.guild_daily_q_ans = {}
-        self.dqt = self.loop.create_task(self.run_at("12:00:00", self.daily_question()))
+        self.dq_active_bool = False
+        self.dqt = self.loop.create_task(self.run_at("16:13:25", self.daily_question()))
 
         # self.bg_hello = self.loop.create_task(self.print_hello())
 
@@ -181,14 +181,22 @@ class MyClient(discord.Client):
         print('Logged on as {0}!'.format(self.user))
         for server in self.guilds:
             self.guild_daily_q_ans[server.name] = 0
+            self.guild_dq_bool[server.name] = False
+
+    async def on_guild_join(self):
+        for server in self.guilds:
+            if server.name not in self.guild_dq_bool.keys():
+                self.guild_daily_q_ans[server.name] = 0
+                self.guild_dq_bool[server.name] = False
 
     # at runtime if a message is sent in the Discord chat, that message is passed in.
     async def on_message(self, message):
         # user who sent the message
         user = str(message.author)
         actual_user = message.author
-
         mention_users = message.mentions
+        server = message.guild.name
+        actual_server = message.guild
 
         # message sent
         content = str(message.content)
@@ -208,9 +216,8 @@ class MyClient(discord.Client):
             if content.startswith(prefix + "random"):
                 response = f'This is your random number: {random.randint(0, 9)}'
                 await message.channel.send(response)
-                return
-            elif content.startswith(prefix + "ans"):
-                pass
+            elif content.startswith(prefix + "ping"):
+                await message.channel.send("Pong2")
             elif content.startswith(prefix + "stats"):
                 if len(mention_users) == 1:
                     embed = create_embed_stats(mention_users[0])
@@ -230,7 +237,7 @@ class MyClient(discord.Client):
                     ktoe_find = ktoe.find(search_word)
                     if ktoe_find:
                         print("from DB")
-                        add_stats(actual_user, search_word)
+                        add_stats_word(actual_user, search_word)
                         embed = create_embed_ktoe(ktoe_find)
                         await message.channel.send(embed=embed)
                     else:
@@ -239,7 +246,7 @@ class MyClient(discord.Client):
                         if type(ktoe_re) == str:
                             await message.channel.send(ktoe_re)
                         else:
-                            add_stats(actual_user, search_word)
+                            add_stats_word(actual_user, search_word)
                             out = create_embed_ktoe(ktoe_re)
                             await message.channel.send(embed=out)
             elif content.startswith(prefix + "etok"):
@@ -247,7 +254,7 @@ class MyClient(discord.Client):
                 if not search_word.encode().isalpha():
                     await message.channel.send("Try again! Please input a valid English word.")
                 else:
-                    add_stats(actual_user, search_word)
+                    add_stats_word(actual_user, search_word)
                     if etok.check(search_word):
                         print("From DB")
                         embed = create_embed_etok(etok.find(search_word))
@@ -261,16 +268,15 @@ class MyClient(discord.Client):
                             embed = create_embed_etok(etok_re)
                             await message.channel.send(embed=embed)
 
-
-    async def print_hello(self):
-        await self.wait_until_ready()
-        print("hello")
-        channel = self.get_channel(729825675120214099)
-        await channel.send("hello")
-        return await asyncio.sleep(5)
-        # while not self.is_closed():
-        #     await channel.send("hello")
-        #     await asyncio.sleep(5)
+    # async def print_hello(self):
+    #     await self.wait_until_ready()
+    #     print("hello")
+    #     channel = self.get_channel(729825675120214099)
+    #     await channel.send("hello")
+    #     return await asyncio.sleep(5)
+    #     # while not self.is_closed():
+    #     #     await channel.send("hello")
+    #     #     await asyncio.sleep(5)
 
     async def wait_until_hour(self, hour_val):
         dt = datetime.now()
@@ -291,10 +297,11 @@ class MyClient(discord.Client):
     async def daily_question(self):
         # 1 min timer
         while not self.is_closed():
+            self.dq_active_bool = True
             print("run bi")
             for server in self.guilds:
                 channel = discord.utils.get(server.channels, name="commands")
-                #channel = self.get_channel(729825675120214099)
+                # channel = self.get_channel(729825675120214099)
                 # e_k_bool = random.choice([True, False])
                 e_k_bool = True
                 if e_k_bool:
@@ -304,7 +311,7 @@ class MyClient(discord.Client):
                     for list in db_data:
                         for key in list:
                             if key in ["conj"]:
-                                #print("conj found")
+                                # print("conj found")
                                 error = 0
                                 dup_loop = True
                                 inde = db_data.index(list)
@@ -319,12 +326,13 @@ class MyClient(discord.Client):
                                     else:
                                         # kills loop when word is different.
                                         dup_loop = False
-                                #print(db_data)
-                                #print(db_data[inde])
+                                # print(db_data)
+                                # print(db_data[inde])
                     answer_num = random.randint(0, 3)
                     self.guild_daily_q_ans[server.name] = answer_num + 1
                     embed = discord.Embed(title="Daily Question:",
-                                          description="What is the English word for " + db_data[answer_num]["word"] + "?",
+                                          description="What is the English word for " + db_data[answer_num][
+                                              "word"] + "?",
                                           color=0x00e1ff)
                     for list in db_data:
                         loop_break = False
@@ -336,31 +344,23 @@ class MyClient(discord.Client):
                             if key not in ["word", "_id", "count", "date"]:
                                 for word in list[key]:
                                     if iskor(word):
-                                        #print(word)
+                                        # print(word)
                                         embed.add_field(name=str(count), value=iskor(word), inline=False)
                                         count += 1
                                         loop_break = True
                                         break
                     await channel.send(embed=embed)
-
-                    # db_data = ktoe.random(4)
-                    # embed = discord.Embed(title=result_dict["word"], color=0x00e1ff)
-                    # for x in db_data:
-                    #     if x ["word", "_id", "count", "date", "conj"]
-                    #     embed.add_field(name="", value=list_to_str_ktoe(result_dict[key]), inline=False)
-                    # print("**Daily Question:**\nWhat is the English translation of " + db_data["word"] + "?")
-                    # await channel.send("**Daily Question:**\nWhat is the English translation of " + db_data["word"] + "?")
                 else:
                     print("e")
                     db_data = etok.random(10)
                     answer_num = random.randint(0, 3)
                     self.guild_daily_q_ans[server.name] = answer_num + 1
-                    # print(db_data)
-                    embed = discord.Embed(title="Daily Question:", description="What is the Korean word for " + db_data[answer_num]["Word"] + "?", color=0x00e1ff)
-                    # embed.set_author(name="Andy")
+                    embed = discord.Embed(title="Daily Question:",
+                                          description="What is the Korean word for " + db_data[answer_num][
+                                              "Word"] + "?", color=0x00e1ff)
                     count = 1
                     for x in db_data:
-                        #print(x)
+                        # print(x)
                         for key in x:
                             if key not in ["Word", "_id", "count", "date", "conj"]:
                                 if x[key]:
@@ -376,15 +376,41 @@ class MyClient(discord.Client):
                                     embed.add_field(name=str(count), value=val, inline=False)
                                     count += 1
                                     break
-
-                    #print("**Daily Question:**\nWhat is the Korean word for " + db_data[answer_num]["Word"] + "?")
-                    #await channel.send("**Daily Question:**\nWhat is the Korean word for " + db_data[0]["Word"] + "?")
                     await channel.send(embed=embed)
                     print("Supposedly sent embed")
-            print(self.guild_daily_q_ans)
-            await self.run_at("12:00:00", self.daily_question())
+                #self.guild_daily_q_ans[server.name].append(datetime.now() + timedelta(minutes=1.0))
+            end_time = datetime.now() + timedelta(seconds=30.0)
+            now = datetime.now()
+            server_comp = len(self.guild_daily_q_ans.keys())
+            actual_comp = 0
+
+            def check_ans(m):
+                return m.content in ["1", "2", "3", "4"]
+
+            while now < end_time:
+                now = datetime.now()
+                print(now)
+                if actual_comp == server_comp:
+                    break
+                else:
+                    try:
+                        msg = await self.wait_for('message', check=check_ans, timeout=(end_time-now).total_seconds())
+                    except asyncio.TimeoutError:
+                        break
+                    if int(msg.content) == self.guild_daily_q_ans[msg.guild.name] and not self.guild_dq_bool[msg.guild.name]:
+                        await msg.channel.send(f'Congratulations {msg.author}! You get 100 experience points and 100 gold!')
+                        # ADD FUNCTION HERE TO UPDATE STATS FOR GOLD AND EXP
+                        self.guild_dq_bool[msg.guild.name] = True
+                        actual_comp += 1
+            for server in self.guilds:
+                if not self.guild_dq_bool[server.name]:
+                    channel = discord.utils.get(server.channels, name="commands")
+                    await channel.send(f"Times up! Daily question is over! The answer was {self.guild_daily_q_ans[server.name]}.")
+
+                self.guild_dq_bool[server.name] = False
+            self.dq_active_bool = False
+            await self.run_at("20:00:00", self.daily_question())
 
 
 client = MyClient()
 client.run(TOKEN)
-
