@@ -86,7 +86,7 @@ class Ktoe:
         if size == 1:
             for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
                 return x
-        for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
+        for x in ktoe_col.aggregate([{"$sample": {"size": size}}, {"$match": {"conj": {"$exists": False}}}]):
             if x in out:
                 pass
             else:
