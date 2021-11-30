@@ -12,6 +12,7 @@ etok_class = Etok()
 options = FirefoxOptions()
 options.add_argument("--headless")
 
+# Starts up the web driver
 service = Service("./geckodriver.exe")
 driver = webdriver.Firefox(service=service, options=options)
 
@@ -22,48 +23,46 @@ driver = webdriver.Firefox(service=service, options=options)
 # https://en.dict.naver.com/#/search?query=%EC%9D%BC&range=all
 
 
+# Searches words for Korean to English.
 def ktoe_search(word):
-    # try:
-        dic = {"word": word, "count": 1, "date": datetime.datetime.now().isoformat()}
-        driver.get("https://en.dict.naver.com/#/search?query=" + word)
-        # Waits for website to load fully
-        driver.implicitly_wait(3)
+    dic = {"word": word, "count": 1, "date": datetime.datetime.now().isoformat()}
+    driver.get("https://en.dict.naver.com/#/search?query=" + word)
+    # Waits for website to load fully
+    driver.implicitly_wait(3)
 
-        component_keyword = driver.find_element(By.ID, "searchPage_entry").find_elements(By.CLASS_NAME, "row")
-        suggestion = driver.find_element(By.ID, "container").find_elements(By.CLASS_NAME, "suggestion")
-        suggestion_word = ""
-        if suggestion:
-            act_suggest = suggestion[0].text.split("\n")
-            if act_suggest[1].find("Would you like to search") >= 0:
-                return "This word does not exist."
-            else:
-                suggestion_word = act_suggest[1].split("'")
-                word = suggestion_word[1]
-                dic["conj"] = "This is word is a conjugated version of " + word
+    component_keyword = driver.find_element(By.ID, "searchPage_entry").find_elements(By.CLASS_NAME, "row")
+    suggestion = driver.find_element(By.ID, "container").find_elements(By.CLASS_NAME, "suggestion")
+    # Checks if words is spelled right or is a conjugated
+    if suggestion:
+        act_suggest = suggestion[0].text.split("\n")
+        if act_suggest[1].find("Would you like to search") >= 0:
+            return "This word does not exist."
+        else:
+            suggestion_word = act_suggest[1].split("'")
+            word = suggestion_word[1]
+            dic["conj"] = "This is word is a conjugated version of " + word
 
-        if not component_keyword:
-            return "No definitions were found for this word!"
-        for l in component_keyword:
-            result = []
-            source = l.find_element(By.CLASS_NAME, "source").text  # the korean dictionary source
-            key = l.find_element(By.CLASS_NAME, "link").text  # the highlighted blue wor
-            if key.startswith(word) and (key == word or key.startswith(word + ' ')):
-                if source not in dic:
-                    dic[source] = []
-                result += l.find_element(By.CLASS_NAME, "mean_list").text.split("\n")
-                for num in result:
-                    if num[:-1].isnumeric():
-                        pass
-                    else:
-                        dic[source].append(num)
+    if not component_keyword:
+        return "No definitions were found for this word!"
+    for ckey in component_keyword:
+        result = []
+        source = ckey.find_element(By.CLASS_NAME, "source").text  # the korean dictionary source
+        key = ckey.find_element(By.CLASS_NAME, "link").text  # the highlighted blue wor
+        if key.startswith(word) and (key == word or key.startswith(word + ' ')):
+            if source not in dic:
+                dic[source] = []
+            result += ckey.find_element(By.CLASS_NAME, "mean_list").text.split("\n")
+            for num in result:
+                if num[:-1].isnumeric():
+                    pass
+                else:
+                    dic[source].append(num)
 
-
-        ktoe_class.add(dic)
-        return dic
-    # except Exception:
-    #     return "Error: Invalid word or website down"
+    ktoe_class.add(dic)
+    return dic
 
 
+# Searches words for English to Korean.
 def etok_search(word):
     try:
         dic = {"word": word}
@@ -75,7 +74,6 @@ def etok_search(word):
         first_row = idiom.find_element(By.CLASS_NAME, "row")
         words = first_row.find_elements(By.CLASS_NAME, "mean_list")
         results = []
-        final = []
         count = 1
 
         # splits the results into a list
@@ -91,7 +89,6 @@ def etok_search(word):
                 dic[str(count)] = num
                 count += 1
 
-        # print(final)
         dic_to_str = ""
         for key, value in dic.items():
             dic_to_str += key + ": " + value + "\n"

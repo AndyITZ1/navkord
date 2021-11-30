@@ -22,7 +22,9 @@ ktoe_col = mydb["ktoe"]
 
 
 # RPG Collection
-# This is in the future, rpg collection will have a list of users, but this is an optional sign up meaning some users my not have data for this collection
+# This is in the future, rpg collection will have a list of users,
+# but this is an optional sign up meaning some users my not have
+# data for this collection
 # rpg_col = mydb["rpg"]
 
 class UserDB:
@@ -30,17 +32,23 @@ class UserDB:
     def __init__(self):
         pass
 
-    def add_user(self, user_data):
+    # adds the user if user does not exist in the database.
+    @staticmethod
+    def add_user(user_data):
         user_col.insert_one(user_data)
 
-    def find_user(self, user):
+    # finds the user and returns database info of user. Ex: gold, xp, recent search words.
+    @staticmethod
+    def find_user(user):
         user_query = user_col.find({"user": str(user)}, {"_id": False})
         for x in user_query:
             return x
         else:
             return {}
 
-    def update_user(self, user, updated_data):
+    # Updates user info like xp, recent search words, level.
+    @staticmethod
+    def update_user(user, updated_data):
         user_col.update_one({"user": str(user)}, updated_data)
 
 
@@ -49,17 +57,23 @@ class Ktoe:
     def __init__(self):
         pass
 
-    def add(self, results):
+    # Will add the new search word to database
+    @staticmethod
+    def add(results):
         ktoe_col.insert_one(results)
 
-    def find(self, word):
+    # Checks if words exist in database and will return search results.
+    @staticmethod
+    def find(word):
         for x in ktoe_col.find({"word": word}, {"_id": False}):
             ktoe_col.update_one({"word": word},
                                 {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
             return x
         return False
 
-    def recent(self, amount):
+    # Grabs the top recent words in a specified quantity.
+    @staticmethod
+    def recent(amount):
         y = []
         total = 1
         for x in ktoe_col.find().sort("date", -1):
@@ -70,7 +84,9 @@ class Ktoe:
                 total += 1
         return y
 
-    def popular(self, amount):
+    # Grabs the top popular words in a specified quantity.
+    @staticmethod
+    def popular(amount):
         y = []
         total = 1
         for x in ktoe_col.find().sort("count", -1):
@@ -81,7 +97,9 @@ class Ktoe:
                 total += 1
         return y
 
-    def random(self, size):
+    # Grabs the random words in a specified quantity.
+    @staticmethod
+    def random(size):
         out = []
         if size == 1:
             for x in ktoe_col.aggregate([{"$sample": {"size": size}}]):
@@ -99,16 +117,22 @@ class Etok:
     def __init__(self):
         pass
 
-    def add(self, results):
+    # Will add the new search word to database
+    @staticmethod
+    def add(results):
         etok_col.insert_one(results)
 
-    def find(self, word):
+    # Checks if words exist in database and will return search results.
+    @staticmethod
+    def find(word):
         for x in etok_col.find({"Word": word}, {"_id": False}):
             etok_col.update_one({"Word": word},
                                 {"$set": {"count": x["count"] + 1, "date": datetime.datetime.now().isoformat()}})
             return x
 
-    def recent(self, amount):
+    # Grabs the top recent words in a specified quantity.
+    @staticmethod
+    def recent(amount):
         y = []
         total = 1
         for x in etok_col.find().sort("date", -1):
@@ -119,7 +143,9 @@ class Etok:
                 total += 1
         return y
 
-    def popular(self, amount):
+    # Grabs the top popular words in a specified quantity.
+    @staticmethod
+    def popular(amount):
         y = []
         total = 1
         for x in etok_col.find().sort("count", -1):
@@ -130,7 +156,9 @@ class Etok:
                 total += 1
         return y
 
-    def check(self, word):
+    # Checks if words exist in database and will return search results.
+    @staticmethod
+    def check(word):
         print("Checking DB for " + word)
         for x in etok_col.find({"Word": word}, {"_id": False}):
             for key, value in x.items():
@@ -139,7 +167,9 @@ class Etok:
                 else:
                     return False
 
-    def random(self, size):
+    # Grabs the random words in a specified quantity.
+    @staticmethod
+    def random(size):
         out = []
         for x in etok_col.aggregate([{"$sample": {"size": size}}]):
             if x in out:
