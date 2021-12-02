@@ -30,8 +30,9 @@ def list_to_str(list):
 
 def create_embed_etok(result_dict):
     embed = discord.Embed(title=result_dict["Word"], color=0x00e1ff)
-    embed.set_author(name="Naver Eng-Kor Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
+    embed.set_author(name="Naver Eng-Kor Dictionary", icon_url="https://cdn.discordapp.com/attachments"
+                                                               "/347179731885621250/915814579081211904/navklogo.png")
+    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/347179731885621250/915814579081211904/navklogo.png")
     if list_to_str(result_dict["Adjective"]) != "None":
         embed.add_field(name="Adjective", value=list_to_str(result_dict["Adjective"]), inline=False)
     if list_to_str(result_dict["Noun"]) != "None":
@@ -101,8 +102,9 @@ def list_to_str_ktoe(list):
 
 def create_embed_ktoe(result_dict):
     embed = discord.Embed(title=result_dict["word"], color=0x00e1ff)
-    embed.set_author(name="Naver Kor-Eng Dictionary", icon_url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
-    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
+    embed.set_author(name="Naver Kor-Eng Dictionary", icon_url="https://cdn.discordapp.com/attachments"
+                                                               "/347179731885621250/915814579081211904/navklogo.png")
+    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/347179731885621250/915814579081211904/navklogo.png")
     for key in result_dict:
         if not (key in ["word", "_id", "count", "date", "conj"]):
             embed.add_field(name=key, value=list_to_str_ktoe(result_dict[key]), inline=False)
@@ -141,7 +143,7 @@ def iskor(word):
 
 def help_embed():
     embed = discord.Embed(title="NavKORd Help")
-    embed.set_thumbnail(url="https://i.ytimg.com/vi/qdjakuMaW_c/hqdefault.jpg")
+    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/347179731885621250/915814579081211904/navklogo.png")
     embed.add_field(name="!ktoe", value="Converts Korean words to English..", inline=False)
     embed.add_field(name="!etok", value="Converts English words to Korean.", inline=False)
     embed.add_field(name="!random", value="roles a random number.", inline=False)
